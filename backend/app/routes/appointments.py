@@ -1,5 +1,3 @@
-
-
 from app.auth import get_current_user, User
 from fastapi import APIRouter, HTTPException, Depends
 from typing import List
@@ -10,12 +8,15 @@ router = APIRouter(prefix="/appointments")
 
 @router.get("", response_model=List[dict])
 async def list_appointments(user: User = Depends(get_current_user)):
-    return db.get_user_appointments(user.uid)
+    tenant_id = getattr(user, "tenant_id", "tenant-default")
+    return db.get_user_appointments(user.uid, tenant_id=tenant_id)
 
 @router.post("/book", response_model=dict)
 async def book_appointment(data: AppointmentCreate, user: User = Depends(get_current_user)):
+    tenant_id = getattr(user, "tenant_id", "tenant-default") or data.tenant_id or "tenant-default"
     appt_data = data.model_dump()
     appt_data["user_id"] = user.uid
+    appt_data["tenant_id"] = tenant_id
     record = db.create_appointment(appt_data)
     return record
 

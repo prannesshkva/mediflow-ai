@@ -13,6 +13,9 @@ interface Message {
   intent?: string;
   risk_level?: string;
   escalated?: boolean;
+  hitl_status?: string;
+  hitl_required?: boolean;
+  hitl_review_id?: string;
   trace?: AgentTraceStep[];
   rag_context_used?: boolean;
   timestamp: Date;
@@ -98,6 +101,9 @@ export default function ChatPage() {
         intent: response.intent,
         risk_level: response.risk_level,
         escalated: response.escalated,
+        hitl_status: response.hitl_status,
+        hitl_required: response.hitl_required,
+        hitl_review_id: response.hitl_review_id,
         trace: response.agent_trace,
         rag_context_used: response.rag_context_used,
         timestamp: new Date(),
@@ -309,7 +315,19 @@ export default function ChatPage() {
                     <Bot size={14} color="var(--accent-cyan)" />
                   </div>
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {msg.escalated && (
+                    {msg.hitl_status === "pending_clinician_review" ? (
+                      <div style={{
+                        display: "flex", alignItems: "center", gap: "8px",
+                        padding: "8px 12px", borderRadius: "8px",
+                        background: "rgba(244,63,94,0.12)", border: "1px solid rgba(244,63,94,0.3)",
+                        marginBottom: "8px",
+                      }}>
+                        <AlertTriangle size={14} color="#F43F5E" />
+                        <span style={{ fontSize: "12px", color: "#F43F5E", fontWeight: 700 }}>
+                          🚨 HITL GATE ACTIVE — Live Agent Suspended Pending Clinician Review
+                        </span>
+                      </div>
+                    ) : msg.escalated && (
                       <div style={{
                         display: "flex", alignItems: "center", gap: "8px",
                         padding: "8px 12px", borderRadius: "8px",
@@ -318,7 +336,7 @@ export default function ChatPage() {
                       }}>
                         <AlertTriangle size={14} color="#F43F5E" />
                         <span style={{ fontSize: "12px", color: "#F43F5E", fontWeight: 600 }}>
-                          HIGH RISK — This case has been escalated to clinical staff
+                          HIGH RISK — Escalated to clinical triage staff
                         </span>
                       </div>
                     )}
@@ -329,13 +347,23 @@ export default function ChatPage() {
                         <ReactMarkdown>{msg.content}</ReactMarkdown>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", paddingLeft: "2px" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", paddingLeft: "2px", flexWrap: "wrap" }}>
                       {msg.intent && (
                         <span className="badge badge-cyan">{msg.intent.replace(/_/g, " ")}</span>
                       )}
                       {msg.risk_level && (
                         <span className={`badge badge-${msg.risk_level === "HIGH" ? "high" : msg.risk_level === "MEDIUM" ? "medium" : "low"}`}>
                           {msg.risk_level} risk
+                        </span>
+                      )}
+                      {msg.hitl_status && (
+                        <span style={{
+                          fontSize: "11px", padding: "2px 8px", borderRadius: "100px",
+                          background: msg.hitl_status === "pending_clinician_review" ? "rgba(244,63,94,0.15)" : "rgba(16,185,129,0.15)",
+                          color: msg.hitl_status === "pending_clinician_review" ? "#F43F5E" : "#10B981",
+                          fontWeight: 600,
+                        }}>
+                          {msg.hitl_status === "pending_clinician_review" ? "Awaiting Sign-Off" : "Clinician Approved"}
                         </span>
                       )}
                       {msg.rag_context_used && (

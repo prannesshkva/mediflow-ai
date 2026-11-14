@@ -1,5 +1,3 @@
-
-
 import os
 import uuid
 from datetime import datetime, timezone
@@ -8,6 +6,7 @@ from typing import Optional, List, Dict, Any
 _mock_appointments: List[Dict] = [
     {
         "id": "appt-001",
+        "tenant_id": "tenant-default",
         "patient_name": "Raj Sharma",
         "patient_email": "raj@example.com",
         "doctor_name": "Dr. Priya Mehta",
@@ -18,6 +17,7 @@ _mock_appointments: List[Dict] = [
     },
     {
         "id": "appt-002",
+        "tenant_id": "tenant-default",
         "patient_name": "Anita Verma",
         "patient_email": "anita@example.com",
         "doctor_name": "Dr. Arun Kapoor",
@@ -28,6 +28,7 @@ _mock_appointments: List[Dict] = [
     },
     {
         "id": "appt-003",
+        "tenant_id": "tenant-default",
         "patient_name": "Mohammed Ali",
         "patient_email": "mali@example.com",
         "doctor_name": "Dr. Priya Mehta",
@@ -41,6 +42,7 @@ _mock_appointments: List[Dict] = [
 _mock_escalations: List[Dict] = [
     {
         "id": "esc-001",
+        "tenant_id": "tenant-default",
         "patient_name": "Sunita Rao",
         "risk_level": "HIGH",
         "issue": "Patient reported chest pain and difficulty breathing",
@@ -50,6 +52,7 @@ _mock_escalations: List[Dict] = [
     },
     {
         "id": "esc-002",
+        "tenant_id": "tenant-default",
         "patient_name": "Vikram Singh",
         "risk_level": "HIGH",
         "issue": "Patient experiencing severe allergic reaction symptoms",
@@ -59,6 +62,7 @@ _mock_escalations: List[Dict] = [
     },
     {
         "id": "esc-003",
+        "tenant_id": "tenant-default",
         "patient_name": "Deepa Nair",
         "risk_level": "MEDIUM",
         "issue": "Patient has persistent high fever for 3 days",
@@ -71,27 +75,63 @@ _mock_escalations: List[Dict] = [
 _mock_reports: List[Dict] = [
     {
         "id": "rep-001",
+        "tenant_id": "tenant-default",
         "patient_name": "Raj Sharma",
         "file_name": "blood_test_results.pdf",
         "file_url": None,
         "extracted_summary": "Blood test shows slightly elevated glucose levels (110 mg/dL fasting). HbA1c within normal range. Lipid profile normal. Recommend dietary modification and retest in 3 months.",
+        "clinical_payload": {
+            "chief_complaint": "Routine annual health assessment",
+            "vitals": {"systolic_bp": 128, "diastolic_bp": 82, "heart_rate_bpm": 74},
+            "medications": [{"name": "Metformin", "dosage": "500mg", "frequency": "Once daily"}],
+            "allergies": ["Penicillin"],
+            "lab_results": [{"test_name": "Fasting Blood Glucose", "value": "110", "unit": "mg/dL", "flag": "HIGH"}],
+            "assessment_and_plan": "Mild pre-diabetes. Lifestyle intervention.",
+            "icd10_codes": ["R73.09"]
+        },
         "created_at": "2026-05-19T10:00:00Z",
+    }
+]
+
+_mock_hitl_reviews: List[Dict] = [
+    {
+        "id": "hitl-001",
+        "tenant_id": "tenant-default",
+        "session_id": "sess-init-001",
+        "patient_name": "Sunita Rao",
+        "patient_id": "user-sunita-01",
+        "query": "I have severe chest pain and pressure spreading to my left shoulder",
+        "intent": "emergency_symptom",
+        "risk_level": "HIGH",
+        "risk_reason": "Acute cardiac symptom presentation requiring emergency clinician sign-off",
+        "proposed_response": "🚨 EMERGENCY MEDICAL ALERT: Please call 112 or visit the nearest ER immediately. Triage recommends emergent ECG and troponin testing.",
+        "status": "pending_clinician_review",
+        "clinician_id": None,
+        "clinician_notes": None,
+        "final_response": None,
+        "created_at": "2026-05-20T17:02:00Z",
+        "reviewed_at": None,
     }
 ]
 
 _mock_chat_logs: List[Dict] = []
 
 class MockDatabase:
+    """
+    Multi-tenant partitioned database mock backing development and testing.
+    Enforces tenant isolation by default while matching Supabase PostgreSQL schema.
+    """
 
-    def get_appointments(self) -> List[Dict]:
-        return list(_mock_appointments)
+    def get_appointments(self, tenant_id: str = "tenant-default") -> List[Dict]:
+        return [a for a in _mock_appointments if a.get("tenant_id", "tenant-default") == tenant_id]
 
-    def get_user_appointments(self, user_id: str) -> List[Dict]:
-        return [a for a in _mock_appointments if a.get("user_id") == user_id]
+    def get_user_appointments(self, user_id: str, tenant_id: str = "tenant-default") -> List[Dict]:
+        return [a for a in _mock_appointments if a.get("user_id") == user_id and a.get("tenant_id", "tenant-default") == tenant_id]
 
     def create_appointment(self, data: Dict) -> Dict:
         record = {
             "id": f"appt-{uuid.uuid4().hex[:6]}",
+            "tenant_id": data.get("tenant_id", "tenant-default"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "pending",
             **data,
@@ -109,16 +149,18 @@ class MockDatabase:
     def get_appointment(self, appt_id: str) -> Optional[Dict]:
         return next((a for a in _mock_appointments if a["id"] == appt_id), None)
 
-    def get_appointments_today(self) -> int:
+    def get_appointments_today(self, tenant_id: str = "tenant-default") -> int:
         today = datetime.now(timezone.utc).date().isoformat()
-        return sum(1 for a in _mock_appointments if a["appointment_date"].startswith(today))
+        return sum(1 for a in _mock_appointments if a["appointment_date"].startswith(today) and a.get("tenant_id", "tenant-default") == tenant_id)
 
-    def get_escalations(self) -> List[Dict]:
-        return sorted(_mock_escalations, key=lambda x: x["created_at"], reverse=True)
+    def get_escalations(self, tenant_id: str = "tenant-default") -> List[Dict]:
+        filtered = [e for e in _mock_escalations if e.get("tenant_id", "tenant-default") == tenant_id]
+        return sorted(filtered, key=lambda x: x["created_at"], reverse=True)
 
     def create_escalation(self, data: Dict) -> Dict:
         record = {
             "id": f"esc-{uuid.uuid4().hex[:6]}",
+            "tenant_id": data.get("tenant_id", "tenant-default"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             "status": "open",
             **data,
@@ -133,46 +175,84 @@ class MockDatabase:
                 return esc
         return None
 
-    def get_high_risk_count(self) -> int:
-        return sum(1 for e in _mock_escalations if e["risk_level"] == "HIGH" and e["status"] == "open")
+    def get_high_risk_count(self, tenant_id: str = "tenant-default") -> int:
+        return sum(1 for e in _mock_escalations if e["risk_level"] == "HIGH" and e["status"] == "open" and e.get("tenant_id", "tenant-default") == tenant_id)
 
-    def get_reports(self) -> List[Dict]:
-        return list(_mock_reports)
+    def get_reports(self, tenant_id: str = "tenant-default") -> List[Dict]:
+        return [r for r in _mock_reports if r.get("tenant_id", "tenant-default") == tenant_id]
 
-    def get_user_reports(self, user_id: str) -> List[Dict]:
-        return [r for r in _mock_reports if r.get("user_id") == user_id]
+    def get_user_reports(self, user_id: str, tenant_id: str = "tenant-default") -> List[Dict]:
+        return [r for r in _mock_reports if r.get("user_id") == user_id and r.get("tenant_id", "tenant-default") == tenant_id]
 
     def create_report(self, data: Dict) -> Dict:
         record = {
             "id": f"rep-{uuid.uuid4().hex[:6]}",
+            "tenant_id": data.get("tenant_id", "tenant-default"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             **data,
         }
         _mock_reports.append(record)
         return record
 
+    # Human-in-the-Loop (HITL) Clinical Oversight Queue
+    def create_hitl_review(self, data: Dict) -> Dict:
+        record = {
+            "id": f"hitl-{uuid.uuid4().hex[:6]}",
+            "tenant_id": data.get("tenant_id", "tenant-default"),
+            "status": "pending_clinician_review",
+            "created_at": datetime.now(timezone.utc).isoformat(),
+            "reviewed_at": None,
+            **data,
+        }
+        _mock_hitl_reviews.append(record)
+        return record
+
+    def get_hitl_reviews(self, tenant_id: str = "tenant-default", status: Optional[str] = None) -> List[Dict]:
+        items = [h for h in _mock_hitl_reviews if h.get("tenant_id", "tenant-default") == tenant_id]
+        if status:
+            items = [h for h in items if h.get("status") == status]
+        return sorted(items, key=lambda x: x["created_at"], reverse=True)
+
+    def get_hitl_review(self, review_id: str) -> Optional[Dict]:
+        return next((h for h in _mock_hitl_reviews if h["id"] == review_id), None)
+
+    def update_hitl_review(self, review_id: str, data: Dict) -> Optional[Dict]:
+        for h in _mock_hitl_reviews:
+            if h["id"] == review_id:
+                h.update(data)
+                h["reviewed_at"] = datetime.now(timezone.utc).isoformat()
+                return h
+        return None
+
+    def get_pending_hitl_count(self, tenant_id: str = "tenant-default") -> int:
+        return sum(1 for h in _mock_hitl_reviews if h.get("status") == "pending_clinician_review" and h.get("tenant_id", "tenant-default") == tenant_id)
+
     def create_chat_log(self, data: Dict) -> Dict:
         record = {
             "id": f"log-{uuid.uuid4().hex[:6]}",
+            "tenant_id": data.get("tenant_id", "tenant-default"),
             "created_at": datetime.now(timezone.utc).isoformat(),
             **data,
         }
         _mock_chat_logs.append(record)
         return record
 
-    def get_chat_logs(self, limit: int = 50) -> List[Dict]:
-        return list(reversed(_mock_chat_logs[-limit:]))
+    def get_chat_logs(self, limit: int = 50, tenant_id: str = "tenant-default") -> List[Dict]:
+        filtered = [l for l in _mock_chat_logs if l.get("tenant_id", "tenant-default") == tenant_id]
+        return list(reversed(filtered[-limit:]))
 
-    def get_chat_count_today(self) -> int:
-        return len(_mock_chat_logs)
+    def get_chat_count_today(self, tenant_id: str = "tenant-default") -> int:
+        return sum(1 for l in _mock_chat_logs if l.get("tenant_id", "tenant-default") == tenant_id)
 
-    def get_admin_stats(self) -> Dict:
+    def get_admin_stats(self, tenant_id: str = "tenant-default") -> Dict:
         return {
-            "appointments_today": self.get_appointments_today() or 3,
-            "high_risk_alerts": self.get_high_risk_count(),
-            "pending_approvals": sum(1 for a in _mock_appointments if a["status"] == "pending"),
-            "total_chats_today": max(self.get_chat_count_today(), 12),
-            "resolved_escalations": sum(1 for e in _mock_escalations if e["status"] == "resolved"),
+            "appointments_today": self.get_appointments_today(tenant_id) or 3,
+            "high_risk_alerts": self.get_high_risk_count(tenant_id),
+            "pending_approvals": sum(1 for a in _mock_appointments if a["status"] == "pending" and a.get("tenant_id", "tenant-default") == tenant_id),
+            "pending_hitl_reviews": self.get_pending_hitl_count(tenant_id),
+            "total_chats_today": max(self.get_chat_count_today(tenant_id), 12),
+            "resolved_escalations": sum(1 for e in _mock_escalations if e["status"] == "resolved" and e.get("tenant_id", "tenant-default") == tenant_id),
+            "tenant_id": tenant_id,
         }
 
 def _try_supabase():
@@ -190,7 +270,6 @@ _supabase_client = _try_supabase()
 _mock_db = MockDatabase()
 
 def get_db() -> MockDatabase:
-
     return _mock_db
 
 db = get_db()
