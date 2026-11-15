@@ -132,7 +132,7 @@ export default function ProfilePage() {
               </>
             ) : (
               <>
-                <Moon size={15} color="#38BDF8" />
+                <Moon size={15} color="#0C66E4" />
                 <span>Dark Mode</span>
               </>
             )}
@@ -340,18 +340,18 @@ export default function ProfilePage() {
               style={{
                 padding: "16px 18px",
                 borderRadius: "12px",
-                backgroundColor: "#070B14",
-                border: theme === "dark" ? "2px solid #38BDF8" : "1px solid #1E293B",
+                backgroundColor: "#0B0F17",
+                border: theme === "dark" ? "2px solid #3B82F6" : "1px solid #202C42",
                 cursor: "pointer",
-                boxShadow: theme === "dark" ? "0 0 16px rgba(56, 189, 248, 0.2)" : "none",
+                boxShadow: theme === "dark" ? "0 0 16px rgba(59, 130, 246, 0.2)" : "none",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#F8FAFC", fontWeight: 700, fontSize: "14px" }}>
-                  <Moon size={18} color="#38BDF8" />
+                  <Moon size={18} color="#60A5FA" />
                   <span>Obsidian Dark</span>
                 </div>
-                {theme === "dark" && <CheckCircle2 size={16} color="#38BDF8" />}
+                {theme === "dark" && <CheckCircle2 size={16} color="#60A5FA" />}
               </div>
               <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, lineHeight: 1.4 }}>
                 Recommended for low-light clinical workstations, emergency rooms, and extended eye comfort.
@@ -366,17 +366,17 @@ export default function ProfilePage() {
                 padding: "16px 18px",
                 borderRadius: "12px",
                 backgroundColor: "#FFFFFF",
-                border: theme === "light" ? "2px solid #0284C7" : "1px solid #E2E8F0",
+                border: theme === "light" ? "2px solid #0C66E4" : "1px solid #CBD5E1",
                 cursor: "pointer",
-                boxShadow: theme === "light" ? "0 0 16px rgba(2, 132, 199, 0.2)" : "none",
+                boxShadow: theme === "light" ? "0 0 16px rgba(12, 102, 228, 0.15)" : "none",
               }}
             >
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "10px" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "8px", color: "#0F172A", fontWeight: 700, fontSize: "14px" }}>
-                  <Sun size={18} color="#F59E0B" />
+                  <Sun size={18} color="#D97706" />
                   <span>Daylight Clinical</span>
                 </div>
-                {theme === "light" && <CheckCircle2 size={16} color="#0284C7" />}
+                {theme === "light" && <CheckCircle2 size={16} color="#0C66E4" />}
               </div>
               <p style={{ fontSize: "12px", color: "#475569", margin: 0, lineHeight: 1.4 }}>
                 Crisp high-brightness design tailored for daytime hospital wards and consultation rooms.

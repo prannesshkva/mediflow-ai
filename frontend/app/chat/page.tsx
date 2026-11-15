@@ -66,32 +66,32 @@ const GEMINI_PROMPTS = [
     title: "Acute Symptom Triage",
     desc: "Assess sudden chest tightness, pain scale, and clinical acuity",
     prompt: "I have sudden acute chest tightness radiating to my left arm with shortness of breath",
-    color: "#38BDF8",
-    bg: "rgba(56, 189, 248, 0.12)",
+    color: "#0C66E4",
+    bg: "rgba(12, 102, 228, 0.12)",
   },
   {
     icon: Pill,
     title: "Medication & Allergy Safety",
     desc: "Screen drug interactions, contraindications, and dosages",
     prompt: "Check medication interactions between Metformin 500mg, Lisinopril 10mg, and Ibuprofen",
-    color: "#F59E0B",
-    bg: "rgba(245, 158, 11, 0.12)",
+    color: "#D97706",
+    bg: "rgba(217, 119, 6, 0.12)",
   },
   {
     icon: FileSpreadsheet,
     title: "Lab & Pathology Intake",
     desc: "Interpret blood work, cardiac troponin, and metabolic panels",
     prompt: "Can you analyze a lipid panel with Total Cholesterol 245 mg/dL and LDL 160 mg/dL?",
-    color: "#10B981",
-    bg: "rgba(16, 185, 129, 0.12)",
+    color: "#059669",
+    bg: "rgba(5, 150, 105, 0.12)",
   },
   {
     icon: CalendarCheck,
     title: "Clinical Follow-Up",
     desc: "Schedule specialist appointments and follow-up care",
     prompt: "I want to schedule a follow-up consultation with Dr. Chen for next Tuesday morning",
-    color: "#A78BFA",
-    bg: "rgba(167, 139, 250, 0.12)",
+    color: "#4F46E5",
+    bg: "rgba(79, 70, 229, 0.12)",
   },
 ];
 
@@ -525,14 +525,14 @@ export default function ChatPage() {
         style={{
           width: isDrawerOpen ? "290px" : "56px",
           minWidth: isDrawerOpen ? "290px" : "56px",
-          backgroundColor: isDark ? "#0A0F1D" : "#FFFFFF",
-          borderRight: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+          backgroundColor: isDark ? "#0B0F17" : "#FFFFFF",
+          borderRight: isDark ? "1px solid #202C42" : "1px solid #E2E8F0",
           display: "flex",
           flexDirection: "column",
           height: "100%",
           zIndex: 40,
           transition: "width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, background-color 0.22s ease",
-          boxShadow: isDrawerOpen ? (isDark ? "8px 0 24px rgba(0, 0, 0, 0.4)" : "8px 0 24px rgba(9, 30, 66, 0.12)") : "none",
+          boxShadow: isDrawerOpen ? (isDark ? "8px 0 24px rgba(0, 0, 0, 0.4)" : "8px 0 24px rgba(9, 30, 66, 0.08)") : "none",
           position: "relative",
           overflow: "hidden",
         }}
@@ -545,14 +545,14 @@ export default function ChatPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: isDrawerOpen ? "space-between" : "center",
-            borderBottom: isDark ? "1px solid #1A2333" : "1px solid #E2E8F0",
+            borderBottom: isDark ? "1px solid #1C273C" : "1px solid #E2E8F0",
             flexShrink: 0,
           }}
         >
           {isDrawerOpen ? (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Activity size={18} color={isDark ? "#38BDF8" : "#0284C7"} />
+                <Activity size={18} color={isDark ? "#60A5FA" : "#0C66E4"} />
                 <span
                   style={{
                     fontSize: "12px",
@@ -568,8 +568,8 @@ export default function ChatPage() {
                   style={{
                     fontSize: "10.5px",
                     fontWeight: 700,
-                    backgroundColor: isDark ? "rgba(56, 189, 248, 0.15)" : "rgba(2, 132, 199, 0.12)",
-                    color: isDark ? "#38BDF8" : "#0284C7",
+                    backgroundColor: isDark ? "rgba(59, 130, 246, 0.15)" : "rgba(12, 102, 228, 0.1)",
+                    color: isDark ? "#60A5FA" : "#0C66E4",
                     padding: "1px 6px",
                     borderRadius: "4px",
                   }}
@@ -582,9 +582,9 @@ export default function ChatPage() {
                 onClick={() => setIsSidebarPinned(!isSidebarPinned)}
                 title={isSidebarPinned ? "Unpin sidebar (hover-reveal mode)" : "Pin sidebar open"}
                 style={{
-                  background: isSidebarPinned ? (isDark ? "rgba(56, 189, 248, 0.15)" : "rgba(2, 132, 199, 0.12)") : "transparent",
-                  border: isSidebarPinned ? (isDark ? "1px solid rgba(56, 189, 248, 0.3)" : "1px solid rgba(2, 132, 199, 0.3)") : "none",
-                  color: isSidebarPinned ? (isDark ? "#38BDF8" : "#0284C7") : "#64748B",
+                  background: isSidebarPinned ? (isDark ? "rgba(59, 130, 246, 0.15)" : "rgba(12, 102, 228, 0.1)") : "transparent",
+                  border: isSidebarPinned ? (isDark ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid rgba(12, 102, 228, 0.25)") : "none",
+                  color: isSidebarPinned ? (isDark ? "#60A5FA" : "#0C66E4") : "#64748B",
                   cursor: "pointer",
                   padding: "6px",
                   borderRadius: "6px",
@@ -606,8 +606,8 @@ export default function ChatPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: isDark ? "rgba(56, 189, 248, 0.1)" : "rgba(2, 132, 199, 0.1)",
-                color: isDark ? "#38BDF8" : "#0284C7",
+                backgroundColor: isDark ? "rgba(59, 130, 246, 0.12)" : "rgba(12, 102, 228, 0.08)",
+                color: isDark ? "#60A5FA" : "#0C66E4",
                 cursor: "pointer",
               }}
             >
@@ -629,13 +629,13 @@ export default function ChatPage() {
               gap: "10px",
               padding: isDrawerOpen ? "10px 14px" : "10px 0",
               borderRadius: "10px",
-              background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+              background: "linear-gradient(135deg, #0C66E4 0%, #1D4ED8 100%)",
               border: "none",
               color: "#FFFFFF",
               fontSize: "13px",
               fontWeight: 600,
               cursor: "pointer",
-              boxShadow: "0 2px 10px rgba(37, 99, 235, 0.3)",
+              boxShadow: isDark ? "0 2px 10px rgba(12, 102, 228, 0.35)" : "0 2px 8px rgba(12, 102, 228, 0.2)",
               transition: "transform 0.15s ease, box-shadow 0.15s ease",
             }}
             onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
@@ -670,15 +670,21 @@ export default function ChatPage() {
                   justifyContent: isDrawerOpen ? "space-between" : "center",
                   padding: isDrawerOpen ? "10px 12px" : "10px 0",
                   borderRadius: "8px",
-                  backgroundColor: isActive ? "#111A2E" : "transparent",
-                  border: isActive ? "1px solid #1E3A8A" : "1px solid transparent",
-                  borderLeft: isActive ? "3px solid #38BDF8" : "1px solid transparent",
+                  backgroundColor: isActive
+                    ? (isDark ? "#162032" : "#EFF6FF")
+                    : "transparent",
+                  border: isActive
+                    ? (isDark ? "1px solid #233650" : "1px solid #BFDBFE")
+                    : "1px solid transparent",
+                  borderLeft: isActive
+                    ? (isDark ? "3px solid #3B82F6" : "3px solid #0C66E4")
+                    : "1px solid transparent",
                   cursor: "pointer",
-                  transition: "background 0.12s ease",
+                  transition: "background 0.15s ease, border-color 0.15s ease",
                 }}
                 onMouseEnter={(e) => {
                   if (!isActive) {
-                    (e.currentTarget as HTMLElement).style.backgroundColor = "#0F172A";
+                    (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#111726" : "#F1F5F9";
                   }
                 }}
                 onMouseLeave={(e) => {
@@ -693,14 +699,16 @@ export default function ChatPage() {
                       width: 28,
                       height: 28,
                       borderRadius: "6px",
-                      backgroundColor: isActive ? "rgba(56, 189, 248, 0.18)" : "rgba(148, 163, 184, 0.08)",
+                      backgroundColor: isActive
+                        ? (isDark ? "rgba(59, 130, 246, 0.18)" : "#DBEAFE")
+                        : (isDark ? "rgba(148, 163, 184, 0.08)" : "#F1F5F9"),
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <MessageSquare size={14} color={isActive ? "#38BDF8" : "#94A3B8"} />
+                    <MessageSquare size={14} color={isActive ? (isDark ? "#60A5FA" : "#0C66E4") : (isDark ? "#94A3B8" : "#64748B")} />
                   </div>
 
                   {isDrawerOpen && (
@@ -709,7 +717,9 @@ export default function ChatPage() {
                         style={{
                           fontSize: "12.5px",
                           fontWeight: isActive ? 600 : 500,
-                          color: isActive ? "#F8FAFC" : "#CBD5E1",
+                          color: isActive
+                            ? (isDark ? "#F8FAFC" : "#0F172A")
+                            : (isDark ? "#CBD5E1" : "#334155"),
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -720,7 +730,7 @@ export default function ChatPage() {
                       <div
                         style={{
                           fontSize: "10.5px",
-                          color: "#64748B",
+                          color: isDark ? "#64748B" : "#64748B",
                           display: "flex",
                           alignItems: "center",
                           gap: "6px",
@@ -771,7 +781,7 @@ export default function ChatPage() {
         <div
           style={{
             padding: isDrawerOpen ? "12px 14px" : "12px 8px",
-            borderTop: "1px solid #1A2333",
+            borderTop: isDark ? "1px solid #1C273C" : "1px solid #E2E8F0",
             fontSize: "11px",
             color: "#64748B",
             display: "flex",
@@ -783,7 +793,7 @@ export default function ChatPage() {
         >
           <ShieldCheck size={14} color="#10B981" />
           {isDrawerOpen && (
-            <span style={{ color: "#94A3B8", fontWeight: 500 }}>
+            <span style={{ color: isDark ? "#94A3B8" : "#475569", fontWeight: 500 }}>
               Encrypted Clinical Session
             </span>
           )}
@@ -803,8 +813,8 @@ export default function ChatPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            backgroundColor: isDark ? "#090E1B" : "#FFFFFF",
-            borderBottom: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+            backgroundColor: isDark ? "#0B0F17" : "#FFFFFF",
+            borderBottom: isDark ? "1px solid #202C42" : "1px solid #E2E8F0",
             flexShrink: 0,
             transition: "background-color 0.22s ease, border-color 0.22s ease",
           }}
@@ -816,12 +826,12 @@ export default function ChatPage() {
                 width: 32,
                 height: 32,
                 borderRadius: "8px",
-                background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+                background: "linear-gradient(135deg, #0C66E4 0%, #1D4ED8 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
                 color: "#FFFFFF",
-                boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)",
+                boxShadow: isDark ? "0 2px 6px rgba(12, 102, 228, 0.4)" : "0 2px 6px rgba(12, 102, 228, 0.2)",
               }}
             >
               <Activity size={17} strokeWidth={2.4} />
@@ -838,9 +848,9 @@ export default function ChatPage() {
                     fontWeight: 700,
                     padding: "1px 6px",
                     borderRadius: "4px",
-                    backgroundColor: "rgba(16, 185, 129, 0.15)",
-                    color: "#059669",
-                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(5, 150, 105, 0.1)",
+                    color: isDark ? "#10B981" : "#059669",
+                    border: isDark ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(5, 150, 105, 0.25)",
                     letterSpacing: "0.4px",
                   }}
                 >
@@ -855,7 +865,7 @@ export default function ChatPage() {
                     borderRadius: "50%",
                     backgroundColor: "#10B981",
                     display: "inline-block",
-                    boxShadow: "0 0 6px #10B981",
+                    boxShadow: isDark ? "0 0 6px #10B981" : "none",
                   }}
                 />
                 <span>Clinical Decision Support Active</span>
@@ -878,15 +888,15 @@ export default function ChatPage() {
                 gap: "6px",
                 padding: "6px 12px",
                 borderRadius: "20px",
-                backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
-                border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
-                color: isDark ? "#CBD5E1" : "#1E293B",
+                backgroundColor: isDark ? "#151D2E" : "#F1F5F9",
+                border: isDark ? "1px solid #202C42" : "1px solid #E2E8F0",
+                color: isDark ? "#F1F5F9" : "#0F172A",
                 fontSize: "12px",
                 fontWeight: 600,
                 cursor: "pointer",
               }}
             >
-              {isDark ? <Sun size={14} color="#F59E0B" /> : <Moon size={14} color="#0284C7" />}
+              {isDark ? <Sun size={14} color="#F59E0B" /> : <Moon size={14} color="#0C66E4" />}
               <span>{isDark ? "Light" : "Dark"}</span>
             </button>
 
@@ -900,11 +910,11 @@ export default function ChatPage() {
                 alignItems: "center",
                 gap: "8px",
                 padding: "6px 14px",
-                backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
-                border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                backgroundColor: isDark ? "#151D2E" : "#F1F5F9",
+                border: isDark ? "1px solid #202C42" : "1px solid #E2E8F0",
                 borderRadius: "20px",
                 fontSize: "12px",
-                color: isDark ? "#CBD5E1" : "#1E293B",
+                color: isDark ? "#F1F5F9" : "#0F172A",
                 textDecoration: "none",
                 cursor: "pointer",
               }}
@@ -914,7 +924,7 @@ export default function ChatPage() {
                   width: 20,
                   height: 20,
                   borderRadius: "50%",
-                  backgroundColor: "#0284C7",
+                  backgroundColor: "#0C66E4",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
@@ -926,7 +936,7 @@ export default function ChatPage() {
                 {activePatientName.charAt(0).toUpperCase()}
               </div>
               <span style={{ fontWeight: 600 }}>{activePatientName}</span>
-              <span style={{ color: isDark ? "#64748B" : "#94A3B8", fontSize: "11px" }}>
+              <span style={{ color: isDark ? "#94A3B8" : "#64748B", fontSize: "11px" }}>
                 {isDoctorRole ? "(Attending)" : "(Patient)"}
               </span>
             </Link>
@@ -938,8 +948,8 @@ export default function ChatPage() {
                 className="gemini-card-hover"
                 style={{
                   padding: "7px 10px",
-                  backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
-                  border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                  backgroundColor: isDark ? "#151D2E" : "#F1F5F9",
+                  border: isDark ? "1px solid #202C42" : "1px solid #E2E8F0",
                   borderRadius: "8px",
                   color: isDark ? "#94A3B8" : "#64748B",
                   cursor: "pointer",
@@ -972,26 +982,30 @@ export default function ChatPage() {
                 {/* Gemini Multi-Color Sparkle Emblem */}
                 <div
                   style={{
-                    width: 54,
-                    height: 54,
+                    width: 52,
+                    height: 52,
                     borderRadius: "16px",
-                    background: "linear-gradient(135deg, #1E1B4B 0%, #1E293B 100%)",
-                    border: "1px solid rgba(56, 189, 248, 0.3)",
+                    background: isDark
+                      ? "linear-gradient(135deg, #151D2E 0%, #1E283D 100%)"
+                      : "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                    border: isDark ? "1px solid #26354D" : "1px solid #BFDBFE",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: "20px",
-                    boxShadow: "0 0 24px rgba(56, 189, 248, 0.2)",
+                    boxShadow: isDark
+                      ? "0 4px 20px rgba(0, 0, 0, 0.35)"
+                      : "0 4px 16px rgba(12, 102, 228, 0.12)",
                   }}
                 >
-                  <Sparkles size={28} color="#38BDF8" />
+                  <Sparkles size={26} color={isDark ? "#60A5FA" : "#0C66E4"} />
                 </div>
 
                 {/* Big Gemini Greeting Typography */}
                 <h1
                   style={{
-                    fontSize: "44px",
-                    fontWeight: 700,
+                    fontSize: "42px",
+                    fontWeight: 800,
                     letterSpacing: "-0.03em",
                     lineHeight: 1.15,
                     margin: "0 0 10px 0",
@@ -999,7 +1013,9 @@ export default function ChatPage() {
                 >
                   <span
                     style={{
-                      background: "linear-gradient(135deg, #60A5FA 0%, #93C5FD 50%, #C4B5FD 100%)",
+                      background: isDark
+                        ? "linear-gradient(135deg, #FFFFFF 0%, #93C5FD 55%, #BFDBFE 100%)"
+                        : "linear-gradient(135deg, #0F172A 0%, #1E3A8A 65%, #0C66E4 100%)",
                       WebkitBackgroundClip: "text",
                       WebkitTextFillColor: "transparent",
                     }}
@@ -1010,10 +1026,10 @@ export default function ChatPage() {
 
                 <h2
                   style={{
-                    fontSize: "26px",
+                    fontSize: "24px",
                     fontWeight: 500,
-                    color: "#94A3B8",
-                    margin: "0 0 28px 0",
+                    color: isDark ? "#94A3B8" : "#334155",
+                    margin: "0 0 24px 0",
                     letterSpacing: "-0.015em",
                   }}
                 >
@@ -1023,10 +1039,10 @@ export default function ChatPage() {
                 <p
                   style={{
                     fontSize: "14px",
-                    color: "#64748B",
+                    color: isDark ? "#64748B" : "#475569",
                     maxWidth: "640px",
                     lineHeight: 1.6,
-                    margin: "0 0 36px 0",
+                    margin: "0 0 32px 0",
                   }}
                 >
                   Assess patient symptoms, review clinical care guidelines, screen medication contraindications, or interpret laboratory findings.
@@ -1047,23 +1063,24 @@ export default function ChatPage() {
                       className="gemini-card-hover"
                       style={{
                         padding: "16px 18px",
-                        backgroundColor: isDark ? "#0D1424" : "#FFFFFF",
-                        border: isDark ? "1px solid #1E2D47" : "1px solid #E2E8F0",
+                        backgroundColor: isDark ? "#111726" : "#FFFFFF",
+                        border: isDark ? "1px solid #1E283D" : "1px solid #E2E8F0",
                         borderRadius: "16px",
                         cursor: "pointer",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
                         minHeight: "110px",
-                        boxShadow: isDark ? "none" : "0 2px 10px rgba(9, 30, 66, 0.06)",
+                        boxShadow: isDark ? "none" : "0 2px 10px rgba(9, 30, 66, 0.05)",
+                        transition: "all 0.15s ease",
                       }}
                       onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#121C33" : "#F8FAFC";
-                        (e.currentTarget as HTMLElement).style.borderColor = item.color;
+                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#162032" : "#F8FAFC";
+                        (e.currentTarget as HTMLElement).style.borderColor = isDark ? "#3B82F6" : "#0C66E4";
                       }}
                       onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#0D1424" : "#FFFFFF";
-                        (e.currentTarget as HTMLElement).style.borderColor = isDark ? "#1E2D47" : "#E2E8F0";
+                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#111726" : "#FFFFFF";
+                        (e.currentTarget as HTMLElement).style.borderColor = isDark ? "#1E283D" : "#E2E8F0";
                       }}
                     >
                       <div>
@@ -1126,14 +1143,14 @@ export default function ChatPage() {
 
                     <div
                       style={{
-                        backgroundColor: "#162540",
-                        color: "#F8FAFC",
-                        border: "1px solid #23385D",
+                        backgroundColor: isDark ? "#162032" : "#EFF6FF",
+                        color: isDark ? "#F8FAFC" : "#0F172A",
+                        border: isDark ? "1px solid #233650" : "1px solid #BFDBFE",
                         borderRadius: "20px 20px 4px 20px",
                         padding: "14px 20px",
                         fontSize: "14.5px",
                         lineHeight: 1.6,
-                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                        boxShadow: isDark ? "0 2px 8px rgba(0, 0, 0, 0.25)" : "0 2px 8px rgba(12, 102, 228, 0.06)",
                       }}
                     >
                       {msg.content}
@@ -1149,23 +1166,25 @@ export default function ChatPage() {
                         width: 36,
                         height: 36,
                         borderRadius: "12px",
-                        background: "linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)",
-                        border: "1px solid rgba(56, 189, 248, 0.35)",
+                        background: isDark
+                          ? "linear-gradient(135deg, #151D2E 0%, #1E283D 100%)"
+                          : "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                        border: isDark ? "1px solid #26354D" : "1px solid #BFDBFE",
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
                         marginTop: 2,
-                        boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)",
+                        boxShadow: isDark ? "0 0 12px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(12, 102, 228, 0.1)",
                       }}
                     >
-                      <Sparkles size={18} color="#38BDF8" />
+                      <Sparkles size={18} color={isDark ? "#60A5FA" : "#0C66E4"} />
                     </div>
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                       {/* Clinical Assistant Header */}
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                        <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC" }}>
+                        <span style={{ fontSize: "13.5px", fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A" }}>
                           MediFlow Clinical AI
                         </span>
                         <span
@@ -1174,14 +1193,14 @@ export default function ChatPage() {
                             fontWeight: 700,
                             padding: "1px 6px",
                             borderRadius: "4px",
-                            backgroundColor: "rgba(16, 185, 129, 0.15)",
-                            color: "#34D399",
-                            border: "1px solid rgba(16, 185, 129, 0.3)",
+                            backgroundColor: isDark ? "rgba(16, 185, 129, 0.15)" : "rgba(5, 150, 105, 0.1)",
+                            color: isDark ? "#10B981" : "#059669",
+                            border: isDark ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(5, 150, 105, 0.25)",
                           }}
                         >
                           DOCTOR SUPERVISED
                         </span>
-                        <span style={{ fontSize: "11px", color: "#64748B" }}>
+                        <span style={{ fontSize: "11px", color: isDark ? "#94A3B8" : "#64748B" }}>
                           {formatTime(msg.timestamp)}
                         </span>
                       </div>
@@ -1202,10 +1221,10 @@ export default function ChatPage() {
                         >
                           <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0 }} />
                           <div>
-                            <div style={{ fontSize: "13px", color: "#FCA5A5", fontWeight: 700 }}>
+                            <div style={{ fontSize: "13px", color: isDark ? "#FCA5A5" : "#991B1B", fontWeight: 700 }}>
                               🚨 PHYSICIAN SIGN-OFF REQUIRED
                             </div>
-                            <div style={{ fontSize: "11.5px", color: "#F87171", marginTop: "2px" }}>
+                            <div style={{ fontSize: "11.5px", color: isDark ? "#F87171" : "#B91C1C", marginTop: "2px" }}>
                               Acute or high-risk clinical symptoms detected. Autonomous advice halted and queued for licensed physician approval.
                             </div>
                           </div>
@@ -1224,7 +1243,7 @@ export default function ChatPage() {
                           }}
                         >
                           <AlertTriangle size={16} color="#F59E0B" />
-                          <span style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600 }}>
+                          <span style={{ fontSize: "12px", color: isDark ? "#FDE68A" : "#92400E", fontWeight: 600 }}>
                             HIGH RISK — Flagged for attending clinical review
                           </span>
                         </div>
@@ -1233,12 +1252,12 @@ export default function ChatPage() {
                       {/* Content Body */}
                       <div
                         style={{
-                          backgroundColor: isDark ? "#0B111E" : "#FFFFFF",
-                          border: isDark ? "1px solid #1A263B" : "1px solid #E2E8F0",
+                          backgroundColor: isDark ? "#111726" : "#FFFFFF",
+                          border: isDark ? "1px solid #1E283D" : "1px solid #E2E8F0",
                           borderRadius: "16px",
                           padding: "18px 24px",
-                          boxShadow: isDark ? "0 4px 16px rgba(0, 0, 0, 0.25)" : "0 2px 12px rgba(9, 30, 66, 0.08)",
-                          color: isDark ? "#F8FAFC" : "#0F172A",
+                          boxShadow: isDark ? "0 4px 16px rgba(0, 0, 0, 0.25)" : "0 2px 12px rgba(9, 30, 66, 0.06)",
+                          color: isDark ? "#F1F5F9" : "#0F172A",
                         }}
                       >
                         <div className="markdown-output">
@@ -1264,10 +1283,10 @@ export default function ChatPage() {
                                   : "rgba(16, 185, 129, 0.15)",
                               color:
                                 msg.risk_level === "HIGH"
-                                  ? "#F87171"
+                                  ? "#EF4444"
                                   : msg.risk_level === "MEDIUM"
-                                  ? "#FBBF24"
-                                  : "#34D399",
+                                  ? "#D97706"
+                                  : "#059669",
                               border:
                                 msg.risk_level === "HIGH"
                                   ? "1px solid rgba(239, 68, 68, 0.3)"
@@ -1293,8 +1312,8 @@ export default function ChatPage() {
                                   : "rgba(16, 185, 129, 0.15)",
                               color:
                                 msg.hitl_status === "pending_clinician_review"
-                                  ? "#F43F5E"
-                                  : "#10B981",
+                                  ? "#E11D48"
+                                  : "#059669",
                               border:
                                 msg.hitl_status === "pending_clinician_review"
                                   ? "1px solid rgba(244, 63, 94, 0.3)"
@@ -1319,9 +1338,9 @@ export default function ChatPage() {
                               fontSize: "11px",
                               padding: "2px 8px",
                               borderRadius: "6px",
-                              backgroundColor: "#131C30",
-                              color: "#38BDF8",
-                              border: "1px solid #1E2E4E",
+                              backgroundColor: isDark ? "#151D2E" : "#EFF6FF",
+                              color: isDark ? "#60A5FA" : "#0C66E4",
+                              border: isDark ? "1px solid #233650" : "1px solid #BFDBFE",
                               fontWeight: 600,
                               display: "inline-flex",
                               alignItems: "center",
@@ -1347,25 +1366,28 @@ export default function ChatPage() {
                     width: 36,
                     height: 36,
                     borderRadius: "12px",
-                    background: "linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)",
-                    border: "1px solid rgba(56, 189, 248, 0.35)",
+                    background: isDark
+                      ? "linear-gradient(135deg, #151D2E 0%, #1E283D 100%)"
+                      : "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                    border: isDark ? "1px solid #26354D" : "1px solid #BFDBFE",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
                     marginTop: 2,
-                    boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)",
+                    boxShadow: isDark ? "0 0 12px rgba(0, 0, 0, 0.3)" : "0 2px 8px rgba(12, 102, 228, 0.1)",
                   }}
                 >
-                  <Sparkles size={18} color="#38BDF8" />
+                  <Sparkles size={18} color={isDark ? "#60A5FA" : "#0C66E4"} />
                 </div>
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div
                     style={{
-                      backgroundColor: "#0B111E",
-                      border: "1px solid #1A263B",
+                      backgroundColor: isDark ? "#111726" : "#FFFFFF",
+                      border: isDark ? "1px solid #1E283D" : "1px solid #E2E8F0",
                       borderRadius: "16px",
                       padding: "18px 24px",
+                      color: isDark ? "#F1F5F9" : "#0F172A",
                     }}
                   >
                     <div className="markdown-output">
@@ -1386,33 +1408,33 @@ export default function ChatPage() {
                     width: 36,
                     height: 36,
                     borderRadius: "12px",
-                    background: "#0F1A2E",
-                    border: "1px solid #1E2D44",
+                    background: isDark ? "#151D2E" : "#EFF6FF",
+                    border: isDark ? "1px solid #233650" : "1px solid #BFDBFE",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
                     flexShrink: 0,
                   }}
                 >
-                  <Sparkles size={18} color="#38BDF8" className="animate-spin" />
+                  <Sparkles size={18} color={isDark ? "#60A5FA" : "#0C66E4"} className="animate-spin" />
                 </div>
                 <div
                   style={{
                     padding: "12px 18px",
                     borderRadius: "12px",
-                    backgroundColor: "#0B111E",
-                    border: "1px solid #1B2639",
+                    backgroundColor: isDark ? "#111726" : "#FFFFFF",
+                    border: isDark ? "1px solid #1E283D" : "1px solid #E2E8F0",
                     display: "flex",
                     alignItems: "center",
                     gap: "10px",
                   }}
                 >
                   <div style={{ display: "flex", gap: "4px" }}>
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out" }} />
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.2s" }} />
-                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: isDark ? "#60A5FA" : "#0C66E4", animation: "pulse-dot 1.2s infinite ease-in-out" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: isDark ? "#60A5FA" : "#0C66E4", animation: "pulse-dot 1.2s infinite ease-in-out 0.2s" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: isDark ? "#60A5FA" : "#0C66E4", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
                   </div>
-                  <span style={{ fontSize: "13px", color: "#94A3B8" }}>
+                  <span style={{ fontSize: "13px", color: isDark ? "#94A3B8" : "#475569" }}>
                     Analyzing clinical symptoms and checking medical guidelines...
                   </span>
                 </div>
@@ -1441,11 +1463,11 @@ export default function ChatPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                backgroundColor: isDark ? "#0F172A" : "#FFFFFF",
-                border: isDark ? "1px solid #23314A" : "1px solid #CBD5E1",
+                backgroundColor: isDark ? "#111726" : "#FFFFFF",
+                border: isDark ? "1px solid #202C42" : "1px solid #CBD5E1",
                 borderRadius: "32px",
                 padding: "8px 10px 8px 18px",
-                boxShadow: isDark ? "0 8px 30px rgba(0, 0, 0, 0.35)" : "0 8px 30px rgba(9, 30, 66, 0.12)",
+                boxShadow: isDark ? "0 8px 30px rgba(0, 0, 0, 0.4)" : "0 8px 30px rgba(9, 30, 66, 0.08)",
                 transition: "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
               }}
               onFocus={() => {}}
@@ -1466,7 +1488,7 @@ export default function ChatPage() {
                   borderRadius: "50%",
                   transition: "color 0.15s ease",
                 }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#60A5FA" : "#0C66E4")}
                 onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#64748B" : "#94A3B8")}
               >
                 <Paperclip size={18} />
@@ -1508,7 +1530,7 @@ export default function ChatPage() {
                   borderRadius: "50%",
                   transition: "color 0.15s ease",
                 }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#60A5FA" : "#0C66E4")}
                 onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#64748B" : "#94A3B8")}
               >
                 <Mic size={18} />
@@ -1525,18 +1547,24 @@ export default function ChatPage() {
                   borderRadius: "50%",
                   background:
                     !input.trim() || isLoading
-                      ? "#1E293B"
-                      : "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
-                  border: "none",
+                      ? (isDark ? "#1C263B" : "#F1F5F9")
+                      : "linear-gradient(135deg, #0C66E4 0%, #1D4ED8 100%)",
+                  border:
+                    !input.trim() || isLoading
+                      ? (isDark ? "none" : "1px solid #E2E8F0")
+                      : "none",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
-                  color: !input.trim() || isLoading ? "#64748B" : "#FFFFFF",
+                  color:
+                    !input.trim() || isLoading
+                      ? (isDark ? "#64748B" : "#94A3B8")
+                      : "#FFFFFF",
                   boxShadow:
                     !input.trim() || isLoading
                       ? "none"
-                      : "0 2px 10px rgba(37, 99, 235, 0.4)",
+                      : "0 2px 10px rgba(12, 102, 228, 0.35)",
                   transition: "all 0.15s ease",
                 }}
               >

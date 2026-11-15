@@ -158,12 +158,12 @@ export function Sidebar() {
 
       {/* Admin Section — STRICTLY AUTHORIZED FOR CLINICAL DIRECTORS */}
       {isUserAdmin(user?.email) && (
-        <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
+        <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid var(--border)" }}>
           <div
             style={{
               fontSize: "10px",
               fontWeight: 700,
-              color: "#38BDF8",
+              color: "var(--accent-cyan)",
               letterSpacing: "1px",
               padding: "0 10px",
               marginBottom: "8px",
@@ -173,7 +173,7 @@ export function Sidebar() {
             }}
           >
             <span>CLINICAL DIRECTOR</span>
-            <span style={{ fontSize: "9px", background: "rgba(56, 189, 248, 0.15)", padding: "1px 5px", borderRadius: "4px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+            <span style={{ fontSize: "9px", background: "rgba(12, 102, 228, 0.12)", color: "var(--accent-cyan)", padding: "1px 5px", borderRadius: "4px", border: "1px solid rgba(12, 102, 228, 0.25)" }}>
               ROOT
             </span>
           </div>
@@ -187,17 +187,17 @@ export function Sidebar() {
                   href={item.href}
                   className={`sidebar-link ${isActive ? "active" : ""}`}
                   style={{
-                    background: isActive ? "linear-gradient(90deg, rgba(2, 132, 199, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%)" : undefined,
-                    border: isActive ? "1px solid rgba(56, 189, 248, 0.3)" : undefined,
-                    color: isActive ? "#38BDF8" : undefined,
+                    background: isActive ? (theme === "dark" ? "#162032" : "#EFF6FF") : undefined,
+                    border: isActive ? (theme === "dark" ? "1px solid #233650" : "1px solid #BFDBFE") : undefined,
+                    color: isActive ? (theme === "dark" ? "#60A5FA" : "#0C66E4") : undefined,
                   }}
                 >
-                  <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} color={isActive ? "#38BDF8" : undefined} />
+                  <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} color={isActive ? (theme === "dark" ? "#60A5FA" : "#0C66E4") : undefined} />
                   <span style={{ fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
                   {isActive && (
                     <ChevronRight
                       size={14}
-                      color="#38BDF8"
+                      color={theme === "dark" ? "#60A5FA" : "#0C66E4"}
                       style={{ marginLeft: "auto", opacity: 0.8 }}
                     />
                   )}
@@ -331,7 +331,7 @@ export function Sidebar() {
                   </>
                 ) : (
                   <>
-                    <Moon size={13} color="#38BDF8" />
+                    <Moon size={13} color="#0C66E4" />
                     <span>Dark</span>
                   </>
                 )}

@@ -129,8 +129,8 @@ export default function AdminPage() {
   // --------------------------------------------------------------------------
   if (authLoading) {
     return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#030712" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "#38BDF8" }}>
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "var(--bg-primary)" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "var(--accent-cyan)" }}>
           <Activity className="animate-spin" size={24} />
           <span style={{ fontSize: "14px", fontWeight: 600 }}>Verifying Clinical Authority Credentials...</span>
         </div>
@@ -146,7 +146,7 @@ export default function AdminPage() {
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          background: "#030712",
+          background: "var(--bg-primary)",
           padding: "24px",
         }}
       >
@@ -155,11 +155,11 @@ export default function AdminPage() {
             maxWidth: "540px",
             width: "100%",
             textAlign: "center",
-            background: "#0B0F19",
-            border: "1px solid #1F2937",
+            background: "var(--bg-card)",
+            border: "1px solid var(--border)",
             borderRadius: "16px",
             padding: "48px 36px",
-            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)",
+            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.2)",
           }}
         >
           <div
@@ -181,10 +181,10 @@ export default function AdminPage() {
           <div style={{ fontSize: "11px", fontWeight: 700, color: "#EF4444", letterSpacing: "1.2px", marginBottom: "8px", textTransform: "uppercase" }}>
             Security Level: Restricted Access (403)
           </div>
-          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#F8FAFC", marginBottom: "12px", letterSpacing: "-0.01em" }}>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "12px", letterSpacing: "-0.01em" }}>
             Restricted Clinical Authority
           </h1>
-          <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "28px" }}>
+          <p style={{ color: "var(--text-secondary)", fontSize: "14px", lineHeight: 1.6, marginBottom: "28px" }}>
             This command center governs Human-in-the-Loop emergency triage sign-offs, runtime circuit breakers, and protected clinical data. Access is strictly restricted to authorized Clinical Leadership.
           </p>
 
@@ -196,12 +196,12 @@ export default function AdminPage() {
               gap: "8px",
               padding: "10px 20px",
               borderRadius: "8px",
-              background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+              background: "linear-gradient(135deg, #0C66E4 0%, #1D4ED8 100%)",
               color: "#FFFFFF",
               fontSize: "13.5px",
               fontWeight: 600,
               textDecoration: "none",
-              boxShadow: "0 4px 14px rgba(37, 99, 235, 0.3)",
+              boxShadow: "0 4px 14px rgba(12, 102, 228, 0.3)",
             }}
           >
             Return to Patient Portal
@@ -214,21 +214,21 @@ export default function AdminPage() {
   const pendingHITLCount = hitlReviews.filter((h) => h.status === "pending_clinician_review").length;
 
   return (
-    <div style={{ minHeight: "100vh", background: "#030712", color: "#F8FAFC", padding: "28px 36px" }}>
+    <div style={{ minHeight: "100vh", background: "var(--bg-primary)", color: "var(--text-primary)", padding: "28px 36px" }}>
       {/* ------------------------------------------------------------- */}
       {/* 1. Executive Clinical Command Bar                             */}
       {/* ------------------------------------------------------------- */}
       <div
         style={{
-          background: "#080D1A",
-          border: "1px solid #1E293B",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border)",
           borderRadius: "14px",
           padding: "18px 24px",
           marginBottom: "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.4)",
+          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.15)",
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -237,19 +237,19 @@ export default function AdminPage() {
               width: 44,
               height: 44,
               borderRadius: "12px",
-              background: "linear-gradient(135deg, #0284C7 0%, #4F46E5 100%)",
-              border: "1px solid #38BDF8",
+              background: "linear-gradient(135deg, #0C66E4 0%, #4F46E5 100%)",
+              border: "1px solid var(--accent-cyan)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              boxShadow: "0 0 16px rgba(56, 189, 248, 0.3)",
+              boxShadow: "0 0 16px rgba(12, 102, 228, 0.3)",
             }}
           >
             <Cpu size={22} color="#FFFFFF" strokeWidth={2.4} />
           </div>
           <div>
             <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.015em", margin: 0 }}>
+              <h1 style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-primary)", letterSpacing: "-0.015em", margin: 0 }}>
                 MediFlow Clinical Command Center
               </h1>
               <span
@@ -257,19 +257,19 @@ export default function AdminPage() {
                   fontSize: "10px",
                   padding: "2px 8px",
                   borderRadius: "5px",
-                  background: "rgba(56, 189, 248, 0.15)",
-                  color: "#38BDF8",
+                  background: "rgba(12, 102, 228, 0.12)",
+                  color: "var(--accent-cyan)",
                   fontWeight: 700,
-                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  border: "1px solid rgba(12, 102, 228, 0.25)",
                   letterSpacing: "0.8px",
                 }}
               >
                 LEVEL 4 OVERSIGHT
               </span>
             </div>
-            <div style={{ fontSize: "12.5px", color: "#94A3B8", marginTop: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>Authority: <strong style={{ color: "#E2E8F0" }}>Clinical Director</strong></span>
-              <span style={{ color: "#475569" }}>•</span>
+            <div style={{ fontSize: "12.5px", color: "var(--text-secondary)", marginTop: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>Authority: <strong style={{ color: "var(--text-primary)" }}>Clinical Director</strong></span>
+              <span style={{ color: "var(--border)" }}>•</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#10B981", fontWeight: 600 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981" }} />
                 Real-Time Telemetry Active
@@ -353,54 +353,54 @@ export default function AdminPage() {
           marginBottom: "24px",
         }}
       >
-        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-secondary)", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
             <span>HITL Review Queue</span>
-            <Stethoscope size={16} color="#F43F5E" />
+            <Stethoscope size={16} color="#EF4444" />
           </div>
-          <div style={{ fontSize: "28px", fontWeight: 800, color: pendingHITLCount > 0 ? "#F87171" : "#F8FAFC", marginTop: "8px" }}>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: pendingHITLCount > 0 ? "#EF4444" : "var(--text-primary)", marginTop: "8px" }}>
             {pendingHITLCount}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+          <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "4px" }}>
             Cases suspended pending clinician sign-off
           </div>
         </div>
 
-        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-secondary)", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
             <span>Clinical Escalations</span>
-            <AlertTriangle size={16} color="#F59E0B" />
+            <AlertTriangle size={16} color="#D97706" />
           </div>
-          <div style={{ fontSize: "28px", fontWeight: 800, color: "#F8FAFC", marginTop: "8px" }}>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "var(--text-primary)", marginTop: "8px" }}>
             {escalations.length}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+          <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "4px" }}>
             Acute risk alerts logged
           </div>
         </div>
 
-        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-secondary)", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
             <span>Safety Circuit Breaker</span>
             <ShieldCheck size={16} color="#10B981" />
           </div>
-          <div style={{ fontSize: "28px", fontWeight: 800, color: "#34D399", marginTop: "8px" }}>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "#10B981", marginTop: "8px" }}>
             {circuitBreaker.state || "CLOSED"}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+          <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "4px" }}>
             Failures: {circuitBreaker.failure_count || 0} / Threshold: {circuitBreaker.failure_threshold || 3}
           </div>
         </div>
 
-        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+        <div style={{ background: "var(--bg-card)", border: "1px solid var(--border)", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "var(--text-secondary)", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
             <span>Consultations Today</span>
-            <Bot size={16} color="#38BDF8" />
+            <Bot size={16} color="var(--accent-cyan)" />
           </div>
-          <div style={{ fontSize: "28px", fontWeight: 800, color: "#F8FAFC", marginTop: "8px" }}>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "var(--text-primary)", marginTop: "8px" }}>
             {stats.total_chats_today || 0}
           </div>
-          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+          <div style={{ fontSize: "11.5px", color: "var(--text-muted)", marginTop: "4px" }}>
             Deterministic state partitioned runs
           </div>
         </div>
@@ -413,7 +413,7 @@ export default function AdminPage() {
         style={{
           display: "flex",
           gap: "8px",
-          borderBottom: "1px solid #1E293B",
+          borderBottom: "1px solid var(--border)",
           paddingBottom: "12px",
           marginBottom: "24px",
         }}
@@ -426,9 +426,9 @@ export default function AdminPage() {
             gap: "8px",
             padding: "8px 16px",
             borderRadius: "8px",
-            background: activeTab === "hitl" ? "#1E293B" : "transparent",
-            color: activeTab === "hitl" ? "#38BDF8" : "#94A3B8",
-            border: activeTab === "hitl" ? "1px solid #38BDF8" : "1px solid transparent",
+            background: activeTab === "hitl" ? "var(--bg-card-hover)" : "transparent",
+            color: activeTab === "hitl" ? "var(--accent-cyan)" : "var(--text-secondary)",
+            border: activeTab === "hitl" ? "1px solid var(--accent-cyan)" : "1px solid transparent",
             fontSize: "13px",
             fontWeight: 600,
             cursor: "pointer",
@@ -451,9 +451,9 @@ export default function AdminPage() {
             gap: "8px",
             padding: "8px 16px",
             borderRadius: "8px",
-            background: activeTab === "escalations" ? "#1E293B" : "transparent",
-            color: activeTab === "escalations" ? "#38BDF8" : "#94A3B8",
-            border: activeTab === "escalations" ? "1px solid #38BDF8" : "1px solid transparent",
+            background: activeTab === "escalations" ? "var(--bg-card-hover)" : "transparent",
+            color: activeTab === "escalations" ? "var(--accent-cyan)" : "var(--text-secondary)",
+            border: activeTab === "escalations" ? "1px solid var(--accent-cyan)" : "1px solid transparent",
             fontSize: "13px",
             fontWeight: 600,
             cursor: "pointer",
@@ -471,9 +471,9 @@ export default function AdminPage() {
             gap: "8px",
             padding: "8px 16px",
             borderRadius: "8px",
-            background: activeTab === "circuit" ? "#1E293B" : "transparent",
-            color: activeTab === "circuit" ? "#38BDF8" : "#94A3B8",
-            border: activeTab === "circuit" ? "1px solid #38BDF8" : "1px solid transparent",
+            background: activeTab === "circuit" ? "var(--bg-card-hover)" : "transparent",
+            color: activeTab === "circuit" ? "var(--accent-cyan)" : "var(--text-secondary)",
+            border: activeTab === "circuit" ? "1px solid var(--accent-cyan)" : "1px solid transparent",
             fontSize: "13px",
             fontWeight: 600,
             cursor: "pointer",

@@ -1,47 +1,47 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-/* ─── Gemini & Medical Adaptive Themes (Dark & Light) ────────────────────────── */
+/* ─── Gemini & Medical Adaptive Themes (Refined, Eye-Friendly, Non-Neon) ─────── */
 :root, [data-theme="dark"] {
-  /* Slate & Deep Navy Obsidian Palette */
-  --bg-primary: #070B14;     /* Obsidian Dark */
-  --bg-secondary: #0A0F1D;   /* Dark Navy Slate */
-  --bg-card: #0F172A;        /* Slate 900 */
-  --bg-card-hover: #1E293B;  /* Slate 800 */
-  --border: #1E293B;         /* Slate 800 */
-  --border-hover: #334155;   /* Slate 700 */
+  /* Matte Obsidian & Charcoal Slate - Comfortable in Dim Rooms */
+  --bg-primary: #0B0F17;     /* Soft Obsidian */
+  --bg-secondary: #111726;   /* Matte Navy Slate */
+  --bg-card: #151D2E;        /* Deep Slate Card */
+  --bg-card-hover: #1C263B;  /* Slate Hover */
+  --border: #202C42;         /* Refined Muted Border */
+  --border-hover: #2E3E5B;   /* Border Hover */
   
-  --text-primary: #F8FAFC;   /* Slate 50 */
-  --text-secondary: #94A3B8; /* Slate 400 */
-  --text-muted: #64748B;     /* Slate 500 */
+  --text-primary: #F1F5F9;   /* Soft Pearl White (not stark 100% white) */
+  --text-secondary: #94A3B8; /* Slate Gray */
+  --text-muted: #64748B;     /* Neutral Muted Gray */
   
-  /* Gemini Accents */
-  --accent-cyan: #38BDF8;    /* Sky 400 */
-  --accent-purple: #2563EB;  /* Blue 600 */
-  --accent-emerald: #10B981; /* Emerald 500 */
-  --accent-rose: #EF4444;    /* Flat Red */
-  --accent-amber: #F59E0B;   /* Flat Amber */
+  /* Non-Neon Balanced Accents */
+  --accent-cyan: #3B82F6;    /* Classic Royal Blue (No harsh neon cyan) */
+  --accent-purple: #4F46E5;  /* Deep Indigo */
+  --accent-emerald: #10B981; /* Balanced Natural Green */
+  --accent-rose: #EF4444;    /* Crimson Red */
+  --accent-amber: #F59E0B;   /* Warm Amber */
 }
 
 [data-theme="light"] {
-  /* Clean Hospital & Clinic Daylight Palette */
-  --bg-primary: #F8FAFC;     /* Slate 50 */
-  --bg-secondary: #FFFFFF;   /* Pure White */
-  --bg-card: #FFFFFF;        /* Pure White */
-  --bg-card-hover: #F1F5F9;  /* Slate 100 */
-  --border: #E2E8F0;         /* Slate 200 */
-  --border-hover: #CBD5E1;   /* Slate 300 */
+  /* Glare-Free Hospital & Clinical Daylight Palette */
+  --bg-primary: #F8FAFC;     /* Soft Glare-Free Slate White */
+  --bg-secondary: #FFFFFF;   /* Clean Crisp White */
+  --bg-card: #FFFFFF;        /* Crisp White */
+  --bg-card-hover: #F1F5F9;  /* Soft Hover Tint */
+  --border: #E2E8F0;         /* Gentle Gray Border */
+  --border-hover: #CBD5E1;   /* Border Focus */
   
-  --text-primary: #0F172A;   /* Slate 900 */
-  --text-secondary: #334155; /* Slate 700 */
-  --text-muted: #64748B;     /* Slate 500 */
+  --text-primary: #0F172A;   /* Deep Charcoal Slate (Never harsh neon or stark black) */
+  --text-secondary: #475569; /* Balanced Body Text */
+  --text-muted: #64748B;     /* Secondary Subtitle */
   
-  /* Gemini Light Accents */
-  --accent-cyan: #0284C7;    /* Sky 600 */
-  --accent-purple: #1D4ED8;  /* Blue 700 */
-  --accent-emerald: #059669; /* Emerald 600 */
-  --accent-rose: #DC2626;    /* Red 600 */
-  --accent-amber: #D97706;   /* Amber 600 */
+  /* Non-Neon Balanced Accents */
+  --accent-cyan: #0C66E4;    /* Rich Medical Sapphire */
+  --accent-purple: #1E40AF;  /* Classic Navy */
+  --accent-emerald: #059669; /* Natural Forest Green */
+  --accent-rose: #DC2626;    /* Ruby Red */
+  --accent-amber: #D97706;   /* Warm Honey Amber */
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
@@ -272,8 +272,22 @@ body {
 }
 
 .sidebar-link.active {
-  background: var(--accent-cyan);
-  color: white;
+  background: var(--bg-card-hover);
+  color: var(--accent-cyan);
+  font-weight: 600;
+}
+
+[data-theme="light"] .sidebar-link.active {
+  background: #EFF6FF;
+  color: #0C66E4;
+  border: 1px solid #BFDBFE;
+  font-weight: 600;
+}
+
+[data-theme="dark"] .sidebar-link.active {
+  background: #162032;
+  color: #60A5FA;
+  border: 1px solid #233650;
   font-weight: 600;
 }
 
