@@ -1,11 +1,11 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap');
 @import "tailwindcss";
 
-/* ─── Flat Dark Professional Theme ────────────────────────────────────────────── */
-:root {
-  /* Blue & Black Minimalist Palette */
-  --bg-primary: #020617;     /* Slate 950 - Very dark blue/black */
-  --bg-secondary: #0F172A;   /* Slate 900 - Dark blue */
+/* ─── Gemini & Medical Adaptive Themes (Dark & Light) ────────────────────────── */
+:root, [data-theme="dark"] {
+  /* Slate & Deep Navy Obsidian Palette */
+  --bg-primary: #070B14;     /* Obsidian Dark */
+  --bg-secondary: #0A0F1D;   /* Dark Navy Slate */
   --bg-card: #0F172A;        /* Slate 900 */
   --bg-card-hover: #1E293B;  /* Slate 800 */
   --border: #1E293B;         /* Slate 800 */
@@ -15,12 +15,33 @@
   --text-secondary: #94A3B8; /* Slate 400 */
   --text-muted: #64748B;     /* Slate 500 */
   
-  /* Minimalist Accents */
-  --accent-cyan: #3B82F6;    /* Blue 500 - Main Blue Accent */
-  --accent-purple: #2563EB;  /* Blue 600 - Secondary Accent */
-  --accent-emerald: #10B981; /* Flat Green */
+  /* Gemini Accents */
+  --accent-cyan: #38BDF8;    /* Sky 400 */
+  --accent-purple: #2563EB;  /* Blue 600 */
+  --accent-emerald: #10B981; /* Emerald 500 */
   --accent-rose: #EF4444;    /* Flat Red */
   --accent-amber: #F59E0B;   /* Flat Amber */
+}
+
+[data-theme="light"] {
+  /* Clean Hospital & Clinic Daylight Palette */
+  --bg-primary: #F8FAFC;     /* Slate 50 */
+  --bg-secondary: #FFFFFF;   /* Pure White */
+  --bg-card: #FFFFFF;        /* Pure White */
+  --bg-card-hover: #F1F5F9;  /* Slate 100 */
+  --border: #E2E8F0;         /* Slate 200 */
+  --border-hover: #CBD5E1;   /* Slate 300 */
+  
+  --text-primary: #0F172A;   /* Slate 900 */
+  --text-secondary: #334155; /* Slate 700 */
+  --text-muted: #64748B;     /* Slate 500 */
+  
+  /* Gemini Light Accents */
+  --accent-cyan: #0284C7;    /* Sky 600 */
+  --accent-purple: #1D4ED8;  /* Blue 700 */
+  --accent-emerald: #059669; /* Emerald 600 */
+  --accent-rose: #DC2626;    /* Red 600 */
+  --accent-amber: #D97706;   /* Amber 600 */
 }
 
 /* ─── Base ──────────────────────────────────────────────────────────────────── */
@@ -39,11 +60,43 @@ body {
   letter-spacing: -0.01em;
 }
 
-/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--border-hover); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+/* ─── Scrollbar (Gemini UI Smooth Pill) ─────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-hover);
+  border-radius: 999px;
+  transition: background 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* ─── Gemini UI Smooth Transitions & Motion ────────────────────────── */
+.gemini-transition {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gemini-card-hover {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1),
+              background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.gemini-card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.25);
+}
+
+.gemini-card-hover:active {
+  transform: translateY(0);
+}
 
 /* ─── Flat Card (Replaced Glass Card) ───────────────────────────────────────── */
 .glass-card {

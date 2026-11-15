@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { AppShell } from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
@@ -16,17 +17,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" data-theme="dark" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
       <body>
-        <AuthProvider>
-          <AppShell>
-            {children}
-          </AppShell>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <AppShell>
+              {children}
+            </AppShell>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

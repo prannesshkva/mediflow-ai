@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import Link from "next/link";
 import {
   Send,
   User,
@@ -23,12 +24,15 @@ import {
   FileSpreadsheet,
   CalendarCheck,
   ChevronRight,
-  Info
+  Info,
+  Sun,
+  Moon,
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { chatApi, ChatResponse, AgentTraceStep, ChatSession } from "@/lib/api";
 import { useAuth } from "@/components/AuthProvider";
+import { useTheme } from "@/components/ThemeProvider";
 
 interface Message {
   id: string;
@@ -124,6 +128,9 @@ const DEFAULT_SESSIONS: SessionTab[] = [
 
 export default function ChatPage() {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme !== "light";
+
   const [sessions, setSessions] = useState<SessionTab[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>("");
   const [sessionMessagesMap, setSessionMessagesMap] = useState<Record<string, Message[]>>({});
@@ -503,9 +510,10 @@ export default function ChatPage() {
         display: "flex",
         height: "100vh",
         overflow: "hidden",
-        backgroundColor: "#070B14",
-        color: "#F8FAFC",
+        backgroundColor: isDark ? "#070B14" : "#F8FAFC",
+        color: isDark ? "#F8FAFC" : "#0F172A",
         fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+        transition: "background-color 0.22s cubic-bezier(0.16, 1, 0.3, 1), color 0.22s ease",
       }}
     >
       {/* ───────────────────────────────────────────────────────────── */}
@@ -517,14 +525,14 @@ export default function ChatPage() {
         style={{
           width: isDrawerOpen ? "290px" : "56px",
           minWidth: isDrawerOpen ? "290px" : "56px",
-          backgroundColor: "#0A0F1D",
-          borderRight: "1px solid #1E293B",
+          backgroundColor: isDark ? "#0A0F1D" : "#FFFFFF",
+          borderRight: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
           display: "flex",
           flexDirection: "column",
           height: "100%",
           zIndex: 40,
-          transition: "width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease",
-          boxShadow: isDrawerOpen ? "8px 0 24px rgba(0, 0, 0, 0.35)" : "none",
+          transition: "width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease, background-color 0.22s ease",
+          boxShadow: isDrawerOpen ? (isDark ? "8px 0 24px rgba(0, 0, 0, 0.4)" : "8px 0 24px rgba(9, 30, 66, 0.12)") : "none",
           position: "relative",
           overflow: "hidden",
         }}
@@ -537,21 +545,21 @@ export default function ChatPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: isDrawerOpen ? "space-between" : "center",
-            borderBottom: "1px solid #1A2333",
+            borderBottom: isDark ? "1px solid #1A2333" : "1px solid #E2E8F0",
             flexShrink: 0,
           }}
         >
           {isDrawerOpen ? (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <Activity size={18} color="#38BDF8" />
+                <Activity size={18} color={isDark ? "#38BDF8" : "#0284C7"} />
                 <span
                   style={{
                     fontSize: "12px",
                     fontWeight: 700,
                     letterSpacing: "0.5px",
                     textTransform: "uppercase",
-                    color: "#94A3B8",
+                    color: isDark ? "#94A3B8" : "#64748B",
                   }}
                 >
                   Consultations
@@ -560,8 +568,8 @@ export default function ChatPage() {
                   style={{
                     fontSize: "10.5px",
                     fontWeight: 700,
-                    backgroundColor: "rgba(56, 189, 248, 0.15)",
-                    color: "#38BDF8",
+                    backgroundColor: isDark ? "rgba(56, 189, 248, 0.15)" : "rgba(2, 132, 199, 0.12)",
+                    color: isDark ? "#38BDF8" : "#0284C7",
                     padding: "1px 6px",
                     borderRadius: "4px",
                   }}
@@ -574,9 +582,9 @@ export default function ChatPage() {
                 onClick={() => setIsSidebarPinned(!isSidebarPinned)}
                 title={isSidebarPinned ? "Unpin sidebar (hover-reveal mode)" : "Pin sidebar open"}
                 style={{
-                  background: isSidebarPinned ? "rgba(56, 189, 248, 0.15)" : "transparent",
-                  border: isSidebarPinned ? "1px solid rgba(56, 189, 248, 0.3)" : "none",
-                  color: isSidebarPinned ? "#38BDF8" : "#64748B",
+                  background: isSidebarPinned ? (isDark ? "rgba(56, 189, 248, 0.15)" : "rgba(2, 132, 199, 0.12)") : "transparent",
+                  border: isSidebarPinned ? (isDark ? "1px solid rgba(56, 189, 248, 0.3)" : "1px solid rgba(2, 132, 199, 0.3)") : "none",
+                  color: isSidebarPinned ? (isDark ? "#38BDF8" : "#0284C7") : "#64748B",
                   cursor: "pointer",
                   padding: "6px",
                   borderRadius: "6px",
@@ -598,8 +606,8 @@ export default function ChatPage() {
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                backgroundColor: "rgba(56, 189, 248, 0.1)",
-                color: "#38BDF8",
+                backgroundColor: isDark ? "rgba(56, 189, 248, 0.1)" : "rgba(2, 132, 199, 0.1)",
+                color: isDark ? "#38BDF8" : "#0284C7",
                 cursor: "pointer",
               }}
             >
@@ -795,9 +803,10 @@ export default function ChatPage() {
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            backgroundColor: "#090E1B",
-            borderBottom: "1px solid #1E293B",
+            backgroundColor: isDark ? "#090E1B" : "#FFFFFF",
+            borderBottom: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
             flexShrink: 0,
+            transition: "background-color 0.22s ease, border-color 0.22s ease",
           }}
         >
           {/* Left: Consultation Title & Status */}
@@ -820,7 +829,7 @@ export default function ChatPage() {
 
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "14px", fontWeight: 700, color: "#F8FAFC" }}>
+                <span style={{ fontSize: "14px", fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A" }}>
                   {activeSession?.title || "Clinical Consultation"}
                 </span>
                 <span
@@ -830,7 +839,7 @@ export default function ChatPage() {
                     padding: "1px 6px",
                     borderRadius: "4px",
                     backgroundColor: "rgba(16, 185, 129, 0.15)",
-                    color: "#34D399",
+                    color: "#059669",
                     border: "1px solid rgba(16, 185, 129, 0.3)",
                     letterSpacing: "0.4px",
                   }}
@@ -838,7 +847,7 @@ export default function ChatPage() {
                   LIVE CARE
                 </span>
               </div>
-              <div style={{ fontSize: "11.5px", color: "#94A3B8", display: "flex", alignItems: "center", gap: "6px" }}>
+              <div style={{ fontSize: "11.5px", color: isDark ? "#94A3B8" : "#64748B", display: "flex", alignItems: "center", gap: "6px" }}>
                 <span
                   style={{
                     width: 6,
@@ -850,25 +859,54 @@ export default function ChatPage() {
                   }}
                 />
                 <span>Clinical Decision Support Active</span>
-                <span style={{ color: "#475569" }}>•</span>
+                <span style={{ color: isDark ? "#475569" : "#CBD5E1" }}>•</span>
                 <span>Licensed Physician Oversight</span>
               </div>
             </div>
           </div>
 
-          {/* Right: Clinician / User Badge & Clear Action */}
+          {/* Right: Theme Toggle, Clinician Profile Badge & Actions */}
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <div
+            {/* Quick Theme Toggle Button */}
+            <button
+              onClick={toggleTheme}
+              title={`Switch to ${isDark ? "Light" : "Dark"} mode`}
+              className="gemini-card-hover"
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                borderRadius: "20px",
+                backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
+                border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                color: isDark ? "#CBD5E1" : "#1E293B",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              {isDark ? <Sun size={14} color="#F59E0B" /> : <Moon size={14} color="#0284C7" />}
+              <span>{isDark ? "Light" : "Dark"}</span>
+            </button>
+
+            {/* Profile Pill -> /profile */}
+            <Link
+              href="/profile"
+              title="Open User Profile & Settings"
+              className="gemini-card-hover"
               style={{
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
                 padding: "6px 14px",
-                backgroundColor: "#0F172A",
-                border: "1px solid #1E293B",
+                backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
+                border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
                 borderRadius: "20px",
                 fontSize: "12px",
-                color: "#CBD5E1",
+                color: isDark ? "#CBD5E1" : "#1E293B",
+                textDecoration: "none",
+                cursor: "pointer",
               }}
             >
               <div
@@ -888,28 +926,26 @@ export default function ChatPage() {
                 {activePatientName.charAt(0).toUpperCase()}
               </div>
               <span style={{ fontWeight: 600 }}>{activePatientName}</span>
-              <span style={{ color: "#64748B", fontSize: "11px" }}>
+              <span style={{ color: isDark ? "#64748B" : "#94A3B8", fontSize: "11px" }}>
                 {isDoctorRole ? "(Attending)" : "(Patient)"}
               </span>
-            </div>
+            </Link>
 
             {activeMessages.length > 0 && (
               <button
                 onClick={clearCurrentSessionChat}
                 title="Reset conversation"
+                className="gemini-card-hover"
                 style={{
                   padding: "7px 10px",
-                  backgroundColor: "#0F172A",
-                  border: "1px solid #1E293B",
+                  backgroundColor: isDark ? "#0F172A" : "#F1F5F9",
+                  border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
                   borderRadius: "8px",
-                  color: "#94A3B8",
+                  color: isDark ? "#94A3B8" : "#64748B",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
-                  transition: "all 0.15s ease",
                 }}
-                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#FFFFFF")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#94A3B8")}
               >
                 <RefreshCw size={14} />
               </button>
@@ -1008,27 +1044,26 @@ export default function ChatPage() {
                     <div
                       key={idx}
                       onClick={() => sendMessage(item.prompt)}
+                      className="gemini-card-hover"
                       style={{
                         padding: "16px 18px",
-                        backgroundColor: "#0D1424",
-                        border: "1px solid #1E2D47",
+                        backgroundColor: isDark ? "#0D1424" : "#FFFFFF",
+                        border: isDark ? "1px solid #1E2D47" : "1px solid #E2E8F0",
                         borderRadius: "16px",
                         cursor: "pointer",
-                        transition: "all 0.18s ease",
                         display: "flex",
                         flexDirection: "column",
                         justifyContent: "space-between",
                         minHeight: "110px",
+                        boxShadow: isDark ? "none" : "0 2px 10px rgba(9, 30, 66, 0.06)",
                       }}
                       onMouseEnter={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "#121C33";
+                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#121C33" : "#F8FAFC";
                         (e.currentTarget as HTMLElement).style.borderColor = item.color;
-                        (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
                       }}
                       onMouseLeave={(e) => {
-                        (e.currentTarget as HTMLElement).style.backgroundColor = "#0D1424";
-                        (e.currentTarget as HTMLElement).style.borderColor = "#1E2D47";
-                        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                        (e.currentTarget as HTMLElement).style.backgroundColor = isDark ? "#0D1424" : "#FFFFFF";
+                        (e.currentTarget as HTMLElement).style.borderColor = isDark ? "#1E2D47" : "#E2E8F0";
                       }}
                     >
                       <div>
@@ -1047,11 +1082,11 @@ export default function ChatPage() {
                           >
                             <item.icon size={16} />
                           </div>
-                          <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC" }}>
+                          <span style={{ fontSize: "13.5px", fontWeight: 700, color: isDark ? "#F8FAFC" : "#0F172A" }}>
                             {item.title}
                           </span>
                         </div>
-                        <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, lineHeight: 1.45 }}>
+                        <p style={{ fontSize: "12px", color: isDark ? "#94A3B8" : "#475569", margin: 0, lineHeight: 1.45 }}>
                           {item.desc}
                         </p>
                       </div>
@@ -1198,11 +1233,12 @@ export default function ChatPage() {
                       {/* Content Body */}
                       <div
                         style={{
-                          backgroundColor: "#0B111E",
-                          border: "1px solid #1A263B",
+                          backgroundColor: isDark ? "#0B111E" : "#FFFFFF",
+                          border: isDark ? "1px solid #1A263B" : "1px solid #E2E8F0",
                           borderRadius: "16px",
                           padding: "18px 24px",
-                          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",
+                          boxShadow: isDark ? "0 4px 16px rgba(0, 0, 0, 0.25)" : "0 2px 12px rgba(9, 30, 66, 0.08)",
+                          color: isDark ? "#F8FAFC" : "#0F172A",
                         }}
                       >
                         <div className="markdown-output">
@@ -1405,12 +1441,12 @@ export default function ChatPage() {
                 display: "flex",
                 alignItems: "center",
                 gap: "10px",
-                backgroundColor: "#0F172A",
-                border: "1px solid #23314A",
+                backgroundColor: isDark ? "#0F172A" : "#FFFFFF",
+                border: isDark ? "1px solid #23314A" : "1px solid #CBD5E1",
                 borderRadius: "32px",
                 padding: "8px 10px 8px 18px",
-                boxShadow: "0 8px 30px rgba(0, 0, 0, 0.35)",
-                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+                boxShadow: isDark ? "0 8px 30px rgba(0, 0, 0, 0.35)" : "0 8px 30px rgba(9, 30, 66, 0.12)",
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease",
               }}
               onFocus={() => {}}
             >
@@ -1421,7 +1457,7 @@ export default function ChatPage() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#64748B",
+                  color: isDark ? "#64748B" : "#94A3B8",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -1431,7 +1467,7 @@ export default function ChatPage() {
                   transition: "color 0.15s ease",
                 }}
                 onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#64748B")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#64748B" : "#94A3B8")}
               >
                 <Paperclip size={18} />
               </button>
@@ -1449,7 +1485,7 @@ export default function ChatPage() {
                   background: "transparent",
                   border: "none",
                   outline: "none",
-                  color: "#F8FAFC",
+                  color: isDark ? "#F8FAFC" : "#0F172A",
                   fontSize: "14.5px",
                   lineHeight: 1.5,
                 }}
@@ -1463,7 +1499,7 @@ export default function ChatPage() {
                 style={{
                   background: "transparent",
                   border: "none",
-                  color: "#64748B",
+                  color: isDark ? "#64748B" : "#94A3B8",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
@@ -1473,7 +1509,7 @@ export default function ChatPage() {
                   transition: "color 0.15s ease",
                 }}
                 onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
-                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#64748B")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = isDark ? "#64748B" : "#94A3B8")}
               >
                 <Mic size={18} />
               </button>

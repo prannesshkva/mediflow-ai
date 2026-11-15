@@ -5,12 +5,12 @@ import { User, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { SignInModal } from "@/components/home/SignInModal";
 
-export const ADMIN_EMAIL = "prannesshkva@gmail.com";
-export const ADMIN_EMAILS = ["prannesshkva@gmail.com", "prannesshkva2@gmail.com"];
+// Confidential Administrator email - strictly for prannesshkva@gmail.com
+export const AUTHORIZED_ADMIN_EMAIL = "prannesshkva@gmail.com";
 
 export function isUserAdmin(email?: string | null): boolean {
   if (!email) return false;
-  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+  return email.toLowerCase().trim() === AUTHORIZED_ADMIN_EMAIL.toLowerCase().trim();
 }
 
 export interface DemoUser {
@@ -36,6 +36,8 @@ interface AuthContextType {
   loginAsDemoClinician: () => void;
   loginAsDemoPatient: () => void;
   logout: () => Promise<void>;
+  updateUserProfile: (data: { displayName?: string }) => void;
+  activateAdminWithEmail: (emailInput: string) => boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -51,6 +53,8 @@ const AuthContext = createContext<AuthContextType>({
   loginAsDemoClinician: () => {},
   loginAsDemoPatient: () => {},
   logout: async () => {},
+  updateUserProfile: () => {},
+  activateAdminWithEmail: () => false,
 });
 
 export const useAuth = () => useContext(AuthContext);
@@ -93,10 +97,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const setDemoClinicianState = () => {
+    // Default public demo clinician is a standard attending physician
+    // Only the authorized administrator account retains admin access
+    const savedAdmin = typeof window !== "undefined" ? localStorage.getItem("mediflow_admin_active") : null;
+    const isAdminUser = savedAdmin === "true";
+
     const demo: DemoUser = {
-      uid: "admin-prannessh",
-      email: ADMIN_EMAIL,
-      displayName: "Prannessh KVA (Clinical Director)",
+      uid: isAdminUser ? "admin-prannessh" : "clinician-attending",
+      email: isAdminUser ? AUTHORIZED_ADMIN_EMAIL : "attending.physician@mediflow.internal",
+      displayName: isAdminUser ? "Prannessh KVA (Clinical Director)" : "Attending Clinician (MD)",
       photoURL: null,
       tenant_id: "tenant-default",
       role: "clinician",
@@ -140,9 +149,41 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const activateAdminWithEmail = (emailInput: string): boolean => {
+    if (isUserAdmin(emailInput)) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem("mediflow_admin_active", "true");
+      }
+      if (user) {
+        setUser({
+          ...user,
+          email: AUTHORIZED_ADMIN_EMAIL,
+          displayName: user.displayName || "Prannessh KVA",
+        });
+      }
+      return true;
+    }
+    return false;
+  };
+
+  const updateUserProfile = (data: { displayName?: string }) => {
+    if (user) {
+      setUser({
+        ...user,
+        displayName: data.displayName || user.displayName,
+      });
+      try {
+        if (data.displayName) {
+          localStorage.setItem("mediflow_user_profile_name", data.displayName);
+        }
+      } catch {}
+    }
+  };
+
   const logout = async () => {
     if (typeof window !== "undefined") {
       localStorage.removeItem("mediflow_demo_auth");
+      localStorage.removeItem("mediflow_admin_active");
     }
     setIsDemoUser(false);
     setUser(null);
@@ -179,6 +220,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         loginAsDemoClinician: setDemoClinicianState,
         loginAsDemoPatient: setDemoPatientState,
         logout,
+        updateUserProfile,
+        activateAdminWithEmail,
       }}
     >
       {children}

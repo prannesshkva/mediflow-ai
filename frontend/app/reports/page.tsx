@@ -70,8 +70,8 @@ export default function ReportsPage() {
     <div style={{ padding: "32px", maxWidth: "1100px", margin: "0 auto" }}>
       
       <div className="animate-fade-in-up" style={{ marginBottom: "32px" }}>
-        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#F0F4FF", margin: 0 }}>Medical Reports</h1>
-        <p style={{ color: "#8B9BC8", margin: "4px 0 0", fontSize: "14px" }}>
+        <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Medical Reports</h1>
+        <p style={{ color: "var(--text-secondary)", margin: "4px 0 0", fontSize: "14px" }}>
           Upload prescriptions and reports for AI-powered analysis
         </p>
       </div>
@@ -80,12 +80,12 @@ export default function ReportsPage() {
         
         <div>
           <div className="glass-card-static" style={{ padding: "24px", marginBottom: "20px" }}>
-            <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#F0F4FF", marginBottom: "16px" }}>
+            <h2 style={{ fontSize: "15px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "16px" }}>
               Upload Report
             </h2>
 
             <div style={{ marginBottom: "14px" }}>
-              <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>
+              <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>
                 Patient Name (optional)
               </label>
               <input

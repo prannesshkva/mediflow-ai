@@ -96,8 +96,8 @@ export default function AppointmentsPage() {
       
       <div className="animate-fade-in-up" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "32px" }}>
         <div>
-          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#F0F4FF", margin: 0 }}>Appointments</h1>
-          <p style={{ color: "#8B9BC8", margin: "4px 0 0", fontSize: "14px" }}>
+          <h1 style={{ fontSize: "24px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>Appointments</h1>
+          <p style={{ color: "var(--text-secondary)", margin: "4px 0 0", fontSize: "14px" }}>
             Book, view, and manage patient appointments
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function AppointmentsPage() {
         }}>
           <div className="glass-card-static animate-fade-in-up" style={{ width: "100%", maxWidth: "520px", padding: "28px" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
-              <h2 style={{ fontSize: "18px", fontWeight: 700, color: "#F0F4FF", margin: 0 }}>
+              <h2 style={{ fontSize: "18px", fontWeight: 700, color: "var(--text-primary)", margin: 0 }}>
                 Book Appointment
               </h2>
               <button onClick={() => setShowForm(false)} className="btn-ghost" style={{ padding: "6px" }}>
@@ -136,16 +136,16 @@ export default function AppointmentsPage() {
             <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Patient Name *</label>
+                  <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Patient Name *</label>
                   <input className="input-field" placeholder="Full name" required value={form.patient_name} onChange={(e) => setForm((f) => ({ ...f, patient_name: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Email</label>
+                  <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Email</label>
                   <input className="input-field" placeholder="email@example.com" type="email" value={form.patient_email} onChange={(e) => setForm((f) => ({ ...f, patient_email: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Clinical Department / Specialty</label>
+                <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Clinical Department / Specialty</label>
                 <div style={{ position: "relative" }}>
                   <select
                     className="input-field"
@@ -155,21 +155,21 @@ export default function AppointmentsPage() {
                   >
                     {CLINICAL_DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
-                  <ChevronDown size={14} color="#8B9BC8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
+                  <ChevronDown size={14} color="var(--text-muted)" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
                 </div>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
                 <div>
-                  <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Date *</label>
+                  <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Date *</label>
                   <input className="input-field" type="date" required value={form.appointment_date} min={new Date().toISOString().split("T")[0]} onChange={(e) => setForm((f) => ({ ...f, appointment_date: e.target.value }))} />
                 </div>
                 <div>
-                  <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Time</label>
+                  <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Time</label>
                   <input className="input-field" type="time" value={form.appointment_time} onChange={(e) => setForm((f) => ({ ...f, appointment_time: e.target.value }))} />
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Notes (optional)</label>
+                <label style={{ fontSize: "12px", color: "var(--text-secondary)", marginBottom: "6px", display: "block" }}>Notes (optional)</label>
                 <textarea className="input-field" placeholder="Reason for visit, symptoms..." rows={2} value={form.notes} onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))} style={{ resize: "vertical" }} />
               </div>
               <div style={{ display: "flex", gap: "10px", justifyContent: "flex-end", marginTop: "8px" }}>
