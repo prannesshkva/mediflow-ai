@@ -70,21 +70,8 @@ export default function AppointmentsPage() {
       setShowForm(false);
       setForm({ patient_name: "", patient_email: "", doctor_name: CLINICAL_DEPARTMENTS[0], appointment_date: "", appointment_time: "10:30", notes: "" });
       setTimeout(() => setSuccess(""), 4000);
-    } catch {
-      const mock: Appointment = {
-        id: `appt-${Date.now()}`,
-        patient_name: form.patient_name,
-        patient_email: form.patient_email,
-        doctor_name: form.doctor_name,
-        appointment_date: `${form.appointment_date}T${form.appointment_time}:00Z`,
-        status: "pending",
-        notes: form.notes,
-        created_at: new Date().toISOString(),
-      };
-      setAppointments((prev) => [mock, ...prev]);
-      setSuccess("Appointment booked successfully!");
-      setShowForm(false);
-      setTimeout(() => setSuccess(""), 4000);
+    } catch (err: any) {
+      alert("Failed to book appointment with clinical server. Please check your connectivity.");
     } finally {
       setSubmitting(false);
     }

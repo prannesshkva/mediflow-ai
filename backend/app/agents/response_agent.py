@@ -122,11 +122,11 @@ Would you like me to find available slots for a specific clinical department or 
 
 def _template_response(query: str, intent: str, context: List[str], appointment_data: Optional[Dict]) -> str:
     appt_block = _format_appointment_response(appointment_data) if appointment_data else ""
+    if appt_block:
+        return appt_block.strip()
     template_fn = _TEMPLATE_RESPONSES.get(intent, _TEMPLATE_RESPONSES["general_inquiry"])
     base = template_fn(context, query)
-    if appt_block and base:
-        return f"{appt_block.strip()}\n\n---\n\n{base.strip()}"
-    return appt_block.strip() if appt_block else base.strip()
+    return base.strip()
 
 def _groq_response(
     query: str,

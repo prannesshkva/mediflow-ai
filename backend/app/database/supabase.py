@@ -169,11 +169,11 @@ class MockDatabase:
 
     def get_admin_stats(self, tenant_id: str = "tenant-default") -> Dict:
         return {
-            "appointments_today": self.get_appointments_today(tenant_id) or 3,
+            "appointments_today": self.get_appointments_today(tenant_id),
             "high_risk_alerts": self.get_high_risk_count(tenant_id),
             "pending_approvals": sum(1 for a in _mock_appointments if a["status"] == "pending" and a.get("tenant_id", "tenant-default") == tenant_id),
             "pending_hitl_reviews": self.get_pending_hitl_count(tenant_id),
-            "total_chats_today": max(self.get_chat_count_today(tenant_id), 12),
+            "total_chats_today": self.get_chat_count_today(tenant_id),
             "resolved_escalations": sum(1 for e in _mock_escalations if e["status"] == "resolved" and e.get("tenant_id", "tenant-default") == tenant_id),
             "tenant_id": tenant_id,
         }

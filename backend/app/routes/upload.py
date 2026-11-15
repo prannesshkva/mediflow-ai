@@ -19,15 +19,6 @@ from app.rag.ingest import parse_clinical_document_async, batch_ingest_documents
 upload_router = APIRouter()
 admin_router = APIRouter(prefix="/admin", dependencies=[Depends(require_admin_user)])
 
-MOCK_SUMMARIES = [
-    "Blood glucose levels slightly elevated (112 mg/dL fasting). HbA1c within normal range at 5.8%. Recommend dietary changes and follow-up in 3 months.",
-    "Chest X-ray shows no significant abnormalities. Lung fields clear. Heart size normal. No active cardiopulmonary disease detected.",
-    "CBC results: Hemoglobin 11.2 g/dL (slightly low - mild anemia). WBC and platelet counts normal. Recommend iron supplementation and dietary review.",
-    "Lipid profile: Total cholesterol 210 mg/dL (borderline high). LDL 130 mg/dL. HDL 45 mg/dL. Triglycerides 160 mg/dL. Recommend lifestyle modifications.",
-    "Thyroid function test: TSH 3.8 mIU/L (normal). T3 and T4 within normal ranges. No thyroid dysfunction detected.",
-    "Urine routine: Slight proteinuria noted (+1). Suggest repeat test after 2 weeks. Other parameters normal. No infection detected.",
-]
-
 @upload_router.post("/upload-report")
 async def upload_report(
     file: UploadFile = File(...),

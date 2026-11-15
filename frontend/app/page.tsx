@@ -1,8 +1,10 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { Bot, Calendar, Activity, AlertTriangle, FileText, ArrowRight, Heart, Clock, CheckCircle, ShieldCheck } from "lucide-react";
 import { useAuth, isUserAdmin } from "@/components/AuthProvider";
+import { appointmentsApi, reportsApi } from "@/lib/api";
 
 const baseQuickActions = [
   {
@@ -45,10 +47,10 @@ const adminAction = {
 };
 
 const recentActivity = [
-  { icon: Calendar, text: "Appointment routed — Department of General Medicine", time: "Active", color: "#00D4FF" },
-  { icon: ShieldCheck, text: "Automated contraindication safety screening completed", time: "Active", color: "#10B981" },
-  { icon: AlertTriangle, text: "HITL clinician oversight gate standing by", time: "Active", color: "#F59E0B" },
-  { icon: Bot, text: "Multi-agent LangGraph clinical pipeline online", time: "Active", color: "#7C3AED" },
+  { icon: ShieldCheck, text: "Automated contraindication safety screening active", time: "Live", color: "#10B981" },
+  { icon: Bot, text: "Multi-agent LangGraph clinical pipeline online", time: "Live", color: "#7C3AED" },
+  { icon: AlertTriangle, text: "Human-In-The-Loop clinical oversight gate operational", time: "Live", color: "#F59E0B" },
+  { icon: Activity, text: "Zero-trust multi-tenant isolation active", time: "Live", color: "#00D4FF" },
 ];
 
 const agents = [
@@ -64,6 +66,33 @@ export default function HomePage() {
   const { user } = useAuth();
   const isAdmin = isUserAdmin(user?.email);
   const quickActions = isAdmin ? [...baseQuickActions, adminAction] : baseQuickActions;
+
+  const [liveStats, setLiveStats] = useState({
+    appointments: 0,
+    alerts: 0,
+    chats: 0,
+    reports: 0,
+  });
+
+  useEffect(() => {
+    async function fetchLiveStats() {
+      try {
+        const [appts, reps] = await Promise.all([
+          appointmentsApi.list().catch(() => []),
+          reportsApi.list().catch(() => []),
+        ]);
+        setLiveStats({
+          appointments: appts.length,
+          alerts: 0,
+          chats: 0,
+          reports: reps.length,
+        });
+      } catch {
+        // Fallback to zero
+      }
+    }
+    fetchLiveStats();
+  }, []);
   return (
     <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
       
@@ -113,10 +142,10 @@ export default function HomePage() {
         }}
       >
         {[
-          { label: "Appointments Today", value: "3", icon: Calendar, color: "#00D4FF" },
-          { label: "Active Alerts", value: "2", icon: AlertTriangle, color: "#F43F5E" },
-          { label: "AI Chats Today", value: "12", icon: Bot, color: "#7C3AED" },
-          { label: "Reports Processed", value: "1", icon: FileText, color: "#10B981" },
+          { label: "Appointments Today", value: liveStats.appointments.toString(), icon: Calendar, color: "#00D4FF" },
+          { label: "Active Alerts", value: liveStats.alerts.toString(), icon: AlertTriangle, color: "#F43F5E" },
+          { label: "AI Chats Today", value: liveStats.chats.toString(), icon: Bot, color: "#7C3AED" },
+          { label: "Reports Processed", value: liveStats.reports.toString(), icon: FileText, color: "#10B981" },
         ].map((stat, i) => (
           <div
             key={i}

@@ -21,14 +21,9 @@ export default function ReportsPage() {
   const loadReports = async () => {
     try {
       const data = await reportsApi.list();
-      setReports(data);
+      setReports(data || []);
     } catch {
-      setReports([{
-        id: "rep-001", patient_name: "Raj Sharma", file_name: "blood_test_results.pdf",
-        file_url: undefined,
-        extracted_summary: "Blood glucose levels slightly elevated (112 mg/dL fasting). HbA1c within normal range at 5.8%. Recommend dietary changes and follow-up in 3 months.",
-        created_at: "2026-05-19T10:00:00Z",
-      }]);
+      setReports([]);
     }
   };
 
@@ -53,21 +48,8 @@ export default function ReportsPage() {
       };
       setReports((prev) => [newReport, ...prev]);
       setSelectedReport(newReport);
-    } catch {
-      
-      const mockSummaries = [
-        "Complete blood count shows hemoglobin at 12.4 g/dL (slightly low). White blood cell count normal. Platelets normal. Recommend iron supplementation.",
-        "Chest X-ray: No active cardiopulmonary disease. Lung fields clear. Heart size within normal limits.",
-        "Lipid panel: Total cholesterol 195 mg/dL. LDL 118 mg/dL. HDL 52 mg/dL. Triglycerides 125 mg/dL. All values within acceptable range.",
-      ];
-      const newReport: Report = {
-        id: `rep-${Date.now()}`, patient_name: patientName || "Anonymous",
-        file_name: file.name, file_url: undefined,
-        extracted_summary: mockSummaries[Math.floor(Math.random() * mockSummaries.length)],
-        created_at: new Date().toISOString(),
-      };
-      setReports((prev) => [newReport, ...prev]);
-      setSelectedReport(newReport);
+    } catch (err: any) {
+      setError(err?.message || "Failed to upload and analyze report. Please check server connectivity.");
     } finally {
       setUploading(false);
     }
