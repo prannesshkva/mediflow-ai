@@ -8,12 +8,6 @@ import {
   Syringe,
   TestTube,
   ShieldCheck,
-  AlertTriangle,
-  CheckCircle2,
-  Clock,
-  Sparkles,
-  Zap,
-  Radio,
   FileText,
   UserCheck,
   LogIn,
@@ -23,10 +17,10 @@ import { useAuth } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 
 export function ClinicalInstrumentsSetup() {
-  const { user, loginAsDemoClinician, loginAsDemoPatient, signInWithGoogle, loginError } = useAuth();
+  const { loginAsDemoClinician, loginAsDemoPatient, signInWithGoogle, loginError } = useAuth();
   const router = useRouter();
 
-  // Simulated live heart rate pulse animation
+  // Simulated physiological ECG heart rate variance
   const [heartRate, setHeartRate] = useState(74);
   const [pulseTick, setPulseTick] = useState(false);
 
@@ -34,7 +28,6 @@ export function ClinicalInstrumentsSetup() {
     const interval = setInterval(() => {
       setPulseTick(true);
       setTimeout(() => setPulseTick(false), 200);
-      // Small natural physiological variance (72-76 bpm)
       setHeartRate(Math.floor(72 + Math.random() * 5));
     }, 850);
     return () => clearInterval(interval);
@@ -51,121 +44,225 @@ export function ClinicalInstrumentsSetup() {
   };
 
   return (
-    <section className="relative overflow-hidden bg-[#FAFBFC] py-12 sm:py-16 border-b border-[#DFE1E6]">
-      {/* Background Subtle Medical Grid Pattern */}
-      <div
-        className="pointer-events-none absolute inset-0 opacity-40"
-        style={{
-          backgroundImage:
-            "linear-gradient(#DFE1E6 1px, transparent 1px), linear-gradient(90deg, #DFE1E6 1px, transparent 1px)",
-          backgroundSize: "32px 32px",
-        }}
-      />
-
-      <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section
+      id="clinical-setup"
+      style={{
+        backgroundColor: "#F7F8F9",
+        padding: "64px 24px",
+        borderTop: "1px solid #DFE1E6",
+        borderBottom: "1px solid #DFE1E6",
+      }}
+    >
+      <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
         
-        {/* Atlassian-Style Section Header */}
-        <div className="mb-10 text-center max-w-3xl mx-auto">
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#0C66E4]/30 bg-[#E9F2FF] px-3.5 py-1 text-xs font-bold text-[#0C66E4] mb-3">
-            <Activity size={14} className="animate-pulse text-[#0C66E4]" />
+        {/* Section Header */}
+        <div style={{ textAlign: "center", maxWidth: "760px", margin: "0 auto 40px auto" }}>
+          <div
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "4px 12px",
+              borderRadius: "999px",
+              border: "1px solid rgba(12, 102, 228, 0.3)",
+              backgroundColor: "#E9F2FF",
+              fontSize: "12px",
+              fontWeight: 700,
+              color: "#0C66E4",
+              marginBottom: "12px",
+            }}
+          >
+            <Activity size={14} color="#0C66E4" />
             <span>Clinical Workstation &amp; Medical Instruments Setup</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#091E42]">
+
+          <h2
+            style={{
+              fontSize: "36px",
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              color: "#091E42",
+              margin: "0 0 12px 0",
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
+          >
             Where clinical diagnostic equipment meets AI intelligence
           </h2>
-          <p className="mt-3 text-base text-[#44546F] leading-relaxed">
+
+          <p style={{ fontSize: "16px", color: "#44546F", lineHeight: 1.6, margin: 0 }}>
             Connected to hospital telemetry, electronic stethoscopes, and point-of-care analyzers — governed by licensed physician oversight.
           </p>
         </div>
 
-        {/* Two-Column Layout: Left = Clinical Instruments & ICU Monitor, Right = Atlassian Sign-In Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Grid: Left = Telemetry & Instruments, Right = Sign-In Card */}
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+            gap: "28px",
+            alignItems: "start",
+          }}
+        >
           
-          {/* Left Side: Medical Instruments & ICU Monitor (7 Cols) */}
-          <div className="lg:col-span-7 space-y-6">
+          {/* Left Column: Instruments & ICU Telemetry */}
+          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
             
-            {/* 1. Multi-Parameter ICU / Vital Signs Telemetry Monitor */}
-            <div className="rounded-xl border border-[#DFE1E6] bg-[#0A101D] text-white shadow-lg overflow-hidden">
-              {/* Monitor Top Frame */}
-              <div className="flex items-center justify-between border-b border-white/10 bg-[#0F172A] px-4 py-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <div className="flex h-2 w-2 rounded-full bg-[#22C55E] animate-ping" />
-                  <span className="font-mono font-bold text-white tracking-wider">
+            {/* 1. Multi-Parameter ICU Telemetry Monitor */}
+            <div
+              style={{
+                borderRadius: "12px",
+                border: "1px solid #DFE1E6",
+                backgroundColor: "#0A101D",
+                color: "#FFFFFF",
+                boxShadow: "0 8px 24px rgba(9, 30, 66, 0.12)",
+                overflow: "hidden",
+              }}
+            >
+              {/* Monitor Top Bar */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "10px 16px",
+                  backgroundColor: "#0F172A",
+                  borderBottom: "1px solid rgba(255, 255, 255, 0.1)",
+                  fontSize: "11.5px",
+                  fontFamily: "monospace",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span
+                    style={{
+                      width: "8px",
+                      height: "8px",
+                      borderRadius: "50%",
+                      backgroundColor: "#22C55E",
+                      display: "inline-block",
+                    }}
+                  />
+                  <span style={{ fontWeight: 700, color: "#FFFFFF" }}>
                     ICU TELEMETRY • BED 04 (EMERGENCY TRIAGE)
                   </span>
                 </div>
-                <div className="flex items-center gap-3 text-white/70 font-mono text-[11px]">
-                  <span>LEAD II FILTER: 0.5-40Hz</span>
-                  <span className="rounded bg-white/10 px-1.5 py-0.5 text-[#38BDF8]">CALIBRATED</span>
-                </div>
+                <span
+                  style={{
+                    backgroundColor: "rgba(56, 189, 248, 0.15)",
+                    color: "#38BDF8",
+                    padding: "2px 6px",
+                    borderRadius: "4px",
+                    fontSize: "10.5px",
+                  }}
+                >
+                  CALIBRATED
+                </span>
               </div>
 
-              {/* Monitor Main Screen */}
-              <div className="p-4 sm:p-5">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 mb-4">
-                  
-                  {/* Heart Rate / ECG Parameter */}
-                  <div className="rounded-lg bg-[#050B14] p-3 border border-[#22C55E]/30 relative overflow-hidden">
-                    <div className="text-[10px] font-bold text-[#22C55E] uppercase tracking-wider flex items-center justify-between">
+              {/* Vitals Tiles */}
+              <div style={{ padding: "16px" }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(4, 1fr)",
+                    gap: "10px",
+                    marginBottom: "14px",
+                  }}
+                >
+                  {/* HR Tile */}
+                  <div
+                    style={{
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: "#050B14",
+                      border: "1px solid rgba(34, 197, 94, 0.3)",
+                    }}
+                  >
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#22C55E", display: "flex", justifyContent: "space-between" }}>
                       <span>ECG / HR</span>
-                      <Heart
-                        size={12}
-                        className={`text-[#22C55E] transition-transform ${pulseTick ? "scale-125 fill-[#22C55E]" : "scale-100"}`}
-                      />
+                      <Heart size={11} fill={pulseTick ? "#22C55E" : "none"} color="#22C55E" />
                     </div>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-3xl font-black font-mono text-[#22C55E]">{heartRate}</span>
-                      <span className="text-[11px] font-mono text-[#22C55E]/70">BPM</span>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "3px", marginTop: "4px" }}>
+                      <span style={{ fontSize: "24px", fontWeight: 900, fontFamily: "monospace", color: "#22C55E" }}>
+                        {heartRate}
+                      </span>
+                      <span style={{ fontSize: "10px", color: "rgba(34, 197, 94, 0.7)", fontFamily: "monospace" }}>BPM</span>
                     </div>
-                    <div className="text-[9px] font-mono text-white/50 mt-1">SINUS RHYTHM</div>
+                    <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.5)", marginTop: "2px" }}>SINUS</div>
                   </div>
 
-                  {/* Non-Invasive Blood Pressure */}
-                  <div className="rounded-lg bg-[#050B14] p-3 border border-[#F59E0B]/30">
-                    <div className="text-[10px] font-bold text-[#F59E0B] uppercase tracking-wider">
-                      NIBP CUFF
+                  {/* NIBP Tile */}
+                  <div
+                    style={{
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: "#050B14",
+                      border: "1px solid rgba(245, 158, 11, 0.3)",
+                    }}
+                  >
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#F59E0B" }}>NIBP CUFF</div>
+                    <div style={{ marginTop: "4px" }}>
+                      <span style={{ fontSize: "18px", fontWeight: 900, fontFamily: "monospace", color: "#F59E0B" }}>
+                        120/78
+                      </span>
                     </div>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-[#F59E0B]">120/78</span>
-                    </div>
-                    <div className="text-[9px] font-mono text-white/50 mt-1">MAP: 92 mmHg</div>
+                    <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.5)", marginTop: "2px" }}>MAP: 92</div>
                   </div>
 
-                  {/* Pulse Oximeter SpO2 */}
-                  <div className="rounded-lg bg-[#050B14] p-3 border border-[#06B6D4]/30">
-                    <div className="text-[10px] font-bold text-[#06B6D4] uppercase tracking-wider">
-                      SpO2 OXIMETER
+                  {/* SpO2 Tile */}
+                  <div
+                    style={{
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: "#050B14",
+                      border: "1px solid rgba(6, 182, 212, 0.3)",
+                    }}
+                  >
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#06B6D4" }}>SpO2</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "2px", marginTop: "4px" }}>
+                      <span style={{ fontSize: "24px", fontWeight: 900, fontFamily: "monospace", color: "#06B6D4" }}>
+                        99
+                      </span>
+                      <span style={{ fontSize: "10px", color: "rgba(6, 182, 212, 0.7)", fontFamily: "monospace" }}>%</span>
                     </div>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-3xl font-black font-mono text-[#06B6D4]">99</span>
-                      <span className="text-[11px] font-mono text-[#06B6D4]/70">%</span>
-                    </div>
-                    <div className="text-[9px] font-mono text-white/50 mt-1">PLETH NORMAL</div>
+                    <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.5)", marginTop: "2px" }}>NORMAL</div>
                   </div>
 
-                  {/* Respiration & Temperature */}
-                  <div className="rounded-lg bg-[#050B14] p-3 border border-[#A855F7]/30">
-                    <div className="text-[10px] font-bold text-[#A855F7] uppercase tracking-wider">
-                      RESP / TEMP
+                  {/* Resp Tile */}
+                  <div
+                    style={{
+                      padding: "10px",
+                      borderRadius: "8px",
+                      backgroundColor: "#050B14",
+                      border: "1px solid rgba(168, 85, 247, 0.3)",
+                    }}
+                  >
+                    <div style={{ fontSize: "10px", fontWeight: 700, color: "#A855F7" }}>RESP / T</div>
+                    <div style={{ display: "flex", alignItems: "baseline", gap: "2px", marginTop: "4px" }}>
+                      <span style={{ fontSize: "20px", fontWeight: 900, fontFamily: "monospace", color: "#A855F7" }}>
+                        16
+                      </span>
+                      <span style={{ fontSize: "9px", color: "rgba(168, 85, 247, 0.7)", fontFamily: "monospace" }}>/min</span>
                     </div>
-                    <div className="mt-1 flex items-baseline gap-1">
-                      <span className="text-xl font-black font-mono text-[#A855F7]">16</span>
-                      <span className="text-[11px] font-mono text-[#A855F7]/70">/min</span>
-                    </div>
-                    <div className="text-[10px] font-mono text-white/70 mt-1">36.8°C (98.2°F)</div>
+                    <div style={{ fontSize: "9px", color: "rgba(255, 255, 255, 0.7)", marginTop: "2px" }}>36.8°C</div>
                   </div>
-
                 </div>
 
-                {/* Animated ECG Real-Time Rhythm Waveform */}
-                <div className="relative rounded-lg bg-[#03070E] p-3 border border-white/5 overflow-hidden">
-                  <div className="flex items-center justify-between text-[10px] font-mono text-[#22C55E]/80 mb-1">
-                    <span>LEAD II CONTINUOUS RHYTHM TRACE (25mm/s • 10mm/mV)</span>
-                    <span className="text-[#22C55E] font-bold">QRS STABLE</span>
+                {/* Animated ECG Waveform */}
+                <div
+                  style={{
+                    backgroundColor: "#03070E",
+                    borderRadius: "8px",
+                    padding: "10px 12px",
+                    border: "1px solid rgba(255, 255, 255, 0.08)",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "10px", fontFamily: "monospace", color: "rgba(34, 197, 94, 0.8)", marginBottom: "4px" }}>
+                    <span>LEAD II CONTINUOUS RHYTHM TRACE</span>
+                    <span style={{ fontWeight: 700, color: "#22C55E" }}>QRS STABLE</span>
                   </div>
-                  <svg className="w-full h-14" viewBox="0 0 600 60" preserveAspectRatio="none">
+                  <svg style={{ width: "100%", height: "48px" }} viewBox="0 0 600 50" preserveAspectRatio="none">
                     <path
-                      d="M0,30 L60,30 L70,30 L75,25 L80,35 L85,5 L90,50 L95,30 L105,30 L115,20 L125,30 L200,30 L210,30 L215,25 L220,35 L225,5 L230,50 L235,30 L245,30 L255,20 L265,30 L340,30 L350,30 L355,25 L360,35 L365,5 L370,50 L375,30 L385,30 L395,20 L405,30 L480,30 L490,30 L495,25 L500,35 L505,5 L510,50 L515,30 L525,30 L535,20 L545,30 L600,30"
+                      d="M0,25 L60,25 L70,25 L75,20 L80,30 L85,4 L90,44 L95,25 L105,25 L115,16 L125,25 L200,25 L210,25 L215,20 L220,30 L225,4 L230,44 L235,25 L245,25 L255,16 L265,25 L340,25 L350,25 L355,20 L360,30 L365,4 L370,44 L375,25 L385,25 L395,16 L405,25 L480,25 L490,25 L495,20 L500,30 L505,4 L510,44 L515,25 L525,25 L535,16 L545,25 L600,25"
                       fill="none"
                       stroke="#22C55E"
                       strokeWidth="2"
@@ -177,96 +274,160 @@ export function ClinicalInstrumentsSetup() {
               </div>
             </div>
 
-            {/* 2. Medical Diagnostic Instruments Grid (Stethoscope, Infusion Pump, POC Labs, Imaging) */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* 2. Medical Diagnostic Instruments 2x2 Grid */}
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
               
-              {/* Instrument 1: Digital Acoustic Stethoscope */}
-              <div className="rounded-xl border border-[#DFE1E6] bg-white p-4 shadow-xs hover:border-[#85B8FF] transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#E9F2FF] text-[#0C66E4]">
-                    <Stethoscope size={22} />
+              {/* Electronic Stethoscope */}
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #DFE1E6",
+                  borderRadius: "10px",
+                  padding: "14px",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      backgroundColor: "#E9F2FF",
+                      color: "#0C66E4",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Stethoscope size={20} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#091E42]">
-                      Electronic Stethoscope
-                    </div>
-                    <div className="text-xs text-[#626F86]">
-                      Cardiovascular &amp; Pulmonary Filter
-                    </div>
+                    <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#091E42" }}>Electronic Stethoscope</div>
+                    <div style={{ fontSize: "11px", color: "#626F86" }}>Cardio &amp; Pulmonary Filter</div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs border-t border-[#DFE1E6]/60 pt-2.5">
-                  <span className="text-[#44546F]">Auscultation: Distinct S1/S2</span>
-                  <span className="rounded bg-[#E3FCEF] px-1.5 py-0.5 text-[10px] font-bold text-[#006644]">
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #EBECF0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                  <span style={{ color: "#44546F" }}>Auscultation S1/S2</span>
+                  <span style={{ backgroundColor: "#E3FCEF", color: "#006644", padding: "1px 6px", borderRadius: "4px", fontWeight: 700, fontSize: "10px" }}>
                     CLEAR
                   </span>
                 </div>
               </div>
 
-              {/* Instrument 2: Smart Infusion Pump with Safety Check */}
-              <div className="rounded-xl border border-[#DFE1E6] bg-white p-4 shadow-xs hover:border-[#85B8FF] transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#FFF0B3] text-[#172B4D]">
-                    <Syringe size={22} className="text-[#FF991F]" />
+              {/* Smart Infusion Pump */}
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #DFE1E6",
+                  borderRadius: "10px",
+                  padding: "14px",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      backgroundColor: "#FFF0B3",
+                      color: "#172B4D",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <Syringe size={20} color="#FF991F" />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#091E42]">
-                      Smart Infusion Pump
-                    </div>
-                    <div className="text-xs text-[#626F86]">
-                      Contraindication Guard Active
-                    </div>
+                    <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#091E42" }}>Smart Infusion Pump</div>
+                    <div style={{ fontSize: "11px", color: "#626F86" }}>Safety Guard Active</div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs border-t border-[#DFE1E6]/60 pt-2.5">
-                  <span className="text-[#44546F]">Rate: 100 mL/hr Normal Saline</span>
-                  <span className="rounded bg-[#E3FCEF] px-1.5 py-0.5 text-[10px] font-bold text-[#006644]">
-                    SAFETY PASSED
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #EBECF0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                  <span style={{ color: "#44546F" }}>Rate: 100 mL/hr NS</span>
+                  <span style={{ backgroundColor: "#E3FCEF", color: "#006644", padding: "1px 6px", borderRadius: "4px", fontWeight: 700, fontSize: "10px" }}>
+                    SCREENED
                   </span>
                 </div>
               </div>
 
-              {/* Instrument 3: Point-of-Care Laboratory Analyzer */}
-              <div className="rounded-xl border border-[#DFE1E6] bg-white p-4 shadow-xs hover:border-[#85B8FF] transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#E3FCEF] text-[#006644]">
-                    <TestTube size={22} />
+              {/* Point-of-Care Lab Analyzer */}
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #DFE1E6",
+                  borderRadius: "10px",
+                  padding: "14px",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      backgroundColor: "#E3FCEF",
+                      color: "#006644",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <TestTube size={20} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#091E42]">
-                      POC Lab Analyzer
-                    </div>
-                    <div className="text-xs text-[#626F86]">
-                      Troponin I, HbA1c, Chem-7
-                    </div>
+                    <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#091E42" }}>POC Lab Analyzer</div>
+                    <div style={{ fontSize: "11px", color: "#626F86" }}>Troponin I &amp; Chem-7</div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs border-t border-[#DFE1E6]/60 pt-2.5">
-                  <span className="text-[#44546F]">Troponin: &lt; 0.01 ng/mL</span>
-                  <span className="rounded bg-[#DEEBFF] px-1.5 py-0.5 text-[10px] font-bold text-[#0747A6]">
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #EBECF0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                  <span style={{ color: "#44546F" }}>Trop I: &lt; 0.01 ng/mL</span>
+                  <span style={{ backgroundColor: "#DEEBFF", color: "#0747A6", padding: "1px 6px", borderRadius: "4px", fontWeight: 700, fontSize: "10px" }}>
                     NORMAL
                   </span>
                 </div>
               </div>
 
-              {/* Instrument 4: Hospital PACS & EHR Ingest */}
-              <div className="rounded-xl border border-[#DFE1E6] bg-white p-4 shadow-xs hover:border-[#85B8FF] transition-all">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#EAE6FF] text-[#403294]">
-                    <FileText size={22} />
+              {/* Diagnostic Radiology & EHR Ingest */}
+              <div
+                style={{
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #DFE1E6",
+                  borderRadius: "10px",
+                  padding: "14px",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.06)",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "8px",
+                      backgroundColor: "#EAE6FF",
+                      color: "#403294",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <FileText size={20} />
                   </div>
                   <div>
-                    <div className="text-sm font-bold text-[#091E42]">
-                      EHR Ingest Pipeline
-                    </div>
-                    <div className="text-xs text-[#626F86]">
-                      Pydantic v2 Vitals &amp; ICD-10
-                    </div>
+                    <div style={{ fontSize: "13.5px", fontWeight: 700, color: "#091E42" }}>EHR Ingest Station</div>
+                    <div style={{ fontSize: "11px", color: "#626F86" }}>Pydantic v2 Vitals</div>
                   </div>
                 </div>
-                <div className="mt-3 flex items-center justify-between text-xs border-t border-[#DFE1E6]/60 pt-2.5">
-                  <span className="text-[#44546F]">Codes: ICD-10 I10, E11</span>
-                  <span className="rounded bg-[#E3FCEF] px-1.5 py-0.5 text-[10px] font-bold text-[#006644]">
+                <div style={{ marginTop: "10px", paddingTop: "8px", borderTop: "1px solid #EBECF0", display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                  <span style={{ color: "#44546F" }}>ICD-10 I10, E11</span>
+                  <span style={{ backgroundColor: "#E3FCEF", color: "#006644", padding: "1px 6px", borderRadius: "4px", fontWeight: 700, fontSize: "10px" }}>
                     SYNCED
                   </span>
                 </div>
@@ -276,122 +437,257 @@ export function ClinicalInstrumentsSetup() {
 
           </div>
 
-          {/* Right Side: The Atlassian Sign-In Card (5 Cols) */}
-          <div className="lg:col-span-5">
+          {/* Right Column: The Atlassian Sign-In Card */}
+          <div>
             <div
-              className="rounded-2xl border border-[#DFE1E6] bg-white p-6 sm:p-8 shadow-xl transition-all"
               style={{
-                boxShadow: "0 20px 32px -8px rgba(9, 30, 66, 0.15), 0 0 1px rgba(9, 30, 66, 0.31)",
+                borderRadius: "14px",
+                border: "1px solid #DFE1E6",
+                backgroundColor: "#FFFFFF",
+                padding: "32px",
+                boxShadow: "0 16px 32px -4px rgba(9, 30, 66, 0.12)",
               }}
             >
               {/* Card Header in Atlassian Styling */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#0C66E4] text-white shadow-sm">
-                  <Heart size={24} className="fill-white" />
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "18px" }}>
+                <div
+                  style={{
+                    width: "44px",
+                    height: "44px",
+                    borderRadius: "10px",
+                    backgroundColor: "#0C66E4",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#FFFFFF",
+                    boxShadow: "0 2px 6px rgba(12, 102, 228, 0.3)",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Heart size={22} fill="#FFFFFF" color="#FFFFFF" />
                 </div>
                 <div>
-                  <h3 className="text-2xl font-bold tracking-tight text-[#091E42]">
+                  <h3
+                    style={{
+                      fontSize: "22px",
+                      fontWeight: 800,
+                      color: "#091E42",
+                      letterSpacing: "-0.5px",
+                      margin: 0,
+                    }}
+                  >
                     Welcome to MediFlow AI
                   </h3>
-                  <p className="text-xs text-[#626F86]">
+                  <p style={{ fontSize: "12px", color: "#626F86", margin: "2px 0 0 0" }}>
                     Clinical Decision Support with HITL Governance
                   </p>
                 </div>
               </div>
 
-              <p className="text-sm text-[#44546F] mb-6 leading-relaxed">
-                Connect your medical instruments, triage queues, and physician workflows. Authenticate below to enter your clinical tenant workspace.
+              <p style={{ fontSize: "13.5px", color: "#44546F", lineHeight: 1.55, marginBottom: "24px" }}>
+                Authenticate to connect with real-time patient monitors, triage queues, and licensed physician oversight.
               </p>
 
               {loginError && (
-                <div className="mb-4 rounded-lg border border-[#F87171] bg-[#FEF2F2] p-3 text-xs text-[#991B1B]">
+                <div
+                  style={{
+                    marginBottom: "16px",
+                    padding: "10px 12px",
+                    borderRadius: "6px",
+                    backgroundColor: "#FEF2F2",
+                    border: "1px solid #F87171",
+                    color: "#991B1B",
+                    fontSize: "12px",
+                  }}
+                >
                   {loginError}
                 </div>
               )}
 
               {/* Action Buttons */}
-              <div className="space-y-3">
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
                 
                 {/* 1. Enter as Clinical Director (MD) - Atlassian Blue Primary */}
                 <button
                   onClick={handleClinicianAccess}
-                  className="group relative flex w-full items-center justify-between rounded-lg bg-[#0C66E4] p-3.5 text-left text-white shadow-sm transition-all hover:bg-[#0052CC] hover:shadow"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    backgroundColor: "#0C66E4",
+                    border: "none",
+                    color: "#FFFFFF",
+                    cursor: "pointer",
+                    boxShadow: "0 2px 4px rgba(9, 30, 66, 0.15)",
+                    transition: "background 0.15s ease",
+                    textAlign: "left",
+                  }}
+                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#0052CC")}
+                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "#0C66E4")}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-white/20 text-white">
-                      <Stethoscope size={18} />
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "6px",
+                        backgroundColor: "rgba(255, 255, 255, 0.2)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Stethoscope size={18} color="#FFFFFF" />
                     </div>
                     <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">Enter as Clinical Director</span>
-                        <span className="rounded bg-white/25 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-white">
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                        <span style={{ fontSize: "14px", fontWeight: 700 }}>Enter as Clinical Director</span>
+                        <span
+                          style={{
+                            fontSize: "9px",
+                            fontWeight: 800,
+                            letterSpacing: "0.5px",
+                            backgroundColor: "rgba(255, 255, 255, 0.25)",
+                            padding: "2px 6px",
+                            borderRadius: "4px",
+                          }}
+                        >
                           MD ROOT
                         </span>
                       </div>
-                      <p className="text-xs text-white/80">
+                      <p style={{ fontSize: "11.5px", color: "rgba(255, 255, 255, 0.8)", margin: "2px 0 0 0" }}>
                         Full HITL sign-off queue &amp; circuit breaker control
                       </p>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="text-white/80 transition-transform group-hover:translate-x-0.5" />
+                  <ArrowRight size={16} color="rgba(255, 255, 255, 0.8)" />
                 </button>
 
                 {/* 2. Enter as Patient User */}
                 <button
                   onClick={handlePatientAccess}
-                  className="group flex w-full items-center justify-between rounded-lg border border-[#DFE1E6] bg-[#F7F8F9] p-3.5 text-left transition-all hover:border-[#85B8FF] hover:bg-[#E9F2FF]"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "14px 16px",
+                    borderRadius: "8px",
+                    backgroundColor: "#F7F8F9",
+                    border: "1px solid #DFE1E6",
+                    color: "#091E42",
+                    cursor: "pointer",
+                    transition: "all 0.15s ease",
+                    textAlign: "left",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#E9F2FF";
+                    e.currentTarget.style.borderColor = "#85B8FF";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "#F7F8F9";
+                    e.currentTarget.style.borderColor = "#DFE1E6";
+                  }}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-9 w-9 items-center justify-center rounded-md bg-[#DFE1E6] text-[#091E42] group-hover:bg-[#C1DCFF] group-hover:text-[#0C66E4]">
-                      <UserCheck size={18} />
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    <div
+                      style={{
+                        width: "36px",
+                        height: "36px",
+                        borderRadius: "6px",
+                        backgroundColor: "#DFE1E6",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <UserCheck size={18} color="#091E42" />
                     </div>
                     <div>
-                      <span className="text-sm font-semibold text-[#091E42]">
+                      <span style={{ fontSize: "14px", fontWeight: 700, color: "#091E42" }}>
                         Enter as Patient User
                       </span>
-                      <p className="text-xs text-[#626F86]">
+                      <p style={{ fontSize: "11.5px", color: "#626F86", margin: "2px 0 0 0" }}>
                         Symptom triage, appointment booking &amp; lab reports
                       </p>
                     </div>
                   </div>
-                  <ArrowRight size={16} className="text-[#626F86] transition-transform group-hover:translate-x-0.5 group-hover:text-[#0C66E4]" />
+                  <ArrowRight size={16} color="#626F86" />
                 </button>
 
                 {/* Divider */}
-                <div className="my-3 flex items-center gap-3">
-                  <div className="h-px flex-1 bg-[#DFE1E6]" />
-                  <span className="text-[11px] font-medium uppercase tracking-wider text-[#626F86]">
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "8px 0" }}>
+                  <div style={{ flex: 1, height: "1px", backgroundColor: "#DFE1E6" }} />
+                  <span style={{ fontSize: "11px", fontWeight: 600, color: "#626F86", textTransform: "uppercase" }}>
                     Or Single Sign-On
                   </span>
-                  <div className="h-px flex-1 bg-[#DFE1E6]" />
+                  <div style={{ flex: 1, height: "1px", backgroundColor: "#DFE1E6" }} />
                 </div>
 
                 {/* 3. Continue with Google (Firebase SSO) */}
                 <button
                   onClick={signInWithGoogle}
-                  className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-[#DFE1E6] bg-white py-3 text-sm font-semibold text-[#172B4D] shadow-xs transition-colors hover:bg-[#F7F8F9] hover:border-[#85B8FF]"
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: "10px",
+                    width: "100%",
+                    padding: "12px 16px",
+                    borderRadius: "8px",
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #DFE1E6",
+                    color: "#172B4D",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                    boxShadow: "0 1px 2px rgba(9, 30, 66, 0.08)",
+                    transition: "all 0.15s ease",
+                  }}
+                  onMouseOver={(e) => {
+                    e.currentTarget.style.backgroundColor = "#F7F8F9";
+                    e.currentTarget.style.borderColor = "#85B8FF";
+                  }}
+                  onMouseOut={(e) => {
+                    e.currentTarget.style.backgroundColor = "#FFFFFF";
+                    e.currentTarget.style.borderColor = "#DFE1E6";
+                  }}
                 >
-                  <LogIn size={16} className="text-[#0C66E4]" />
+                  <LogIn size={16} color="#0C66E4" />
                   <span>Continue with Google (Firebase)</span>
                 </button>
 
               </div>
 
               {/* Security & Hospital Tenant Badges */}
-              <div className="mt-6 pt-5 border-t border-[#DFE1E6] space-y-2 text-xs text-[#626F86]">
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 font-medium text-[#172B4D]">
-                    <ShieldCheck size={14} className="text-[#22A06B]" />
+              <div
+                style={{
+                  marginTop: "24px",
+                  paddingTop: "16px",
+                  borderTop: "1px solid #EBECF0",
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "8px",
+                  fontSize: "12px",
+                  color: "#626F86",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 600, color: "#172B4D" }}>
+                    <ShieldCheck size={14} color="#22A06B" />
                     PostgreSQL Row-Level Security
                   </span>
-                  <span className="text-[11px] font-bold text-[#0C66E4]">ACTIVE</span>
+                  <span style={{ fontSize: "11px", fontWeight: 700, color: "#0C66E4" }}>ACTIVE</span>
                 </div>
-                <div className="flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 font-medium text-[#172B4D]">
-                    <Activity size={14} className="text-[#0C66E4]" />
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: "6px", fontWeight: 600, color: "#172B4D" }}>
+                    <Activity size={14} color="#0C66E4" />
                     Tenant Isolation
                   </span>
-                  <span className="text-[11px] font-mono text-[#626F86]">tenant-default</span>
+                  <span style={{ fontSize: "11px", fontFamily: "monospace", color: "#626F86" }}>tenant-default</span>
                 </div>
               </div>
 

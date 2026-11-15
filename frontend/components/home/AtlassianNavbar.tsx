@@ -2,11 +2,11 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { Heart, Search, ChevronDown, User, ArrowRight, ShieldCheck, Stethoscope, Sparkles } from "lucide-react";
+import { Heart, Search, ChevronDown, ArrowRight } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
 export function AtlassianNavbar() {
-  const { user, openSignInModal, logout, isAdmin } = useAuth();
+  const { user, openSignInModal } = useAuth();
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const products = [
@@ -24,52 +24,145 @@ export function AtlassianNavbar() {
   ];
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b border-[#DFE1E6] bg-white/95 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
-        
+    <header
+      style={{
+        position: "sticky",
+        top: 0,
+        zIndex: 50,
+        width: "100%",
+        backgroundColor: "#FFFFFF",
+        borderBottom: "1px solid #DFE1E6",
+        boxShadow: "0 1px 3px rgba(9, 30, 66, 0.08)",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: "1200px",
+          margin: "0 auto",
+          height: "64px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 24px",
+        }}
+      >
         {/* Left: Brand & Navigation */}
-        <div className="flex items-center gap-8">
-          <Link href="/" className="flex items-center gap-2.5 text-[#091E42] no-underline group">
+        <div style={{ display: "flex", alignItems: "center", gap: "32px" }}>
+          <Link
+            href="/"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              textDecoration: "none",
+            }}
+          >
             {/* Atlassian-style Blue Geometric Emblem */}
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0C66E4] text-white shadow-sm transition-transform group-hover:scale-105">
-              <Heart size={20} className="fill-white" />
+            <div
+              style={{
+                width: "32px",
+                height: "32px",
+                borderRadius: "8px",
+                backgroundColor: "#0C66E4",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                color: "#FFFFFF",
+                boxShadow: "0 2px 4px rgba(12, 102, 228, 0.3)",
+              }}
+            >
+              <Heart size={18} fill="#FFFFFF" color="#FFFFFF" />
             </div>
-            <div className="flex items-baseline gap-1.5">
-              <span className="text-xl font-bold tracking-tight text-[#091E42] font-sans">
+            <div style={{ display: "flex", alignItems: "baseline", gap: "6px" }}>
+              <span
+                style={{
+                  fontSize: "19px",
+                  fontWeight: 800,
+                  letterSpacing: "-0.5px",
+                  color: "#091E42",
+                  fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+                }}
+              >
                 MEDIFLOW
               </span>
-              <span className="rounded bg-[#E9F2FF] px-1.5 py-0.5 text-[10px] font-bold text-[#0C66E4] uppercase tracking-wider">
+              <span
+                style={{
+                  fontSize: "11px",
+                  fontWeight: 700,
+                  backgroundColor: "#E9F2FF",
+                  color: "#0C66E4",
+                  padding: "2px 6px",
+                  borderRadius: "4px",
+                  letterSpacing: "0.5px",
+                }}
+              >
                 AI
               </span>
             </div>
           </Link>
 
-          {/* Navigation Links with Hover Flyouts */}
-          <nav className="hidden items-center gap-1 md:flex">
+          {/* Navigation Links (Atlassian Style) */}
+          <nav style={{ display: "flex", alignItems: "center", gap: "4px" }}>
             {/* Products Dropdown */}
             <div
-              className="relative"
+              style={{ position: "relative" }}
               onMouseEnter={() => setActiveDropdown("products")}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <button className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors">
+              <button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#44546F",
+                  backgroundColor: activeDropdown === "products" ? "#F1F2F4" : "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
                 <span>Products</span>
-                <ChevronDown size={14} className="opacity-70" />
+                <ChevronDown size={14} style={{ opacity: 0.7 }} />
               </button>
 
               {activeDropdown === "products" && (
-                <div className="absolute left-0 top-full w-80 rounded-xl border border-[#DFE1E6] bg-white p-3 shadow-xl animate-fade-in-up">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#626F86] px-3 py-1 mb-1">
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    width: "320px",
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #DFE1E6",
+                    borderRadius: "10px",
+                    padding: "12px",
+                    boxShadow: "0 12px 24px -4px rgba(9, 30, 66, 0.18)",
+                    zIndex: 100,
+                  }}
+                >
+                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#626F86", padding: "4px 8px 8px" }}>
                     Platform Capabilities
                   </div>
                   {products.map((item, idx) => (
                     <Link
                       key={idx}
                       href={item.href}
-                      className="block rounded-lg p-2.5 hover:bg-[#F7F8F9] transition-colors no-underline"
+                      style={{
+                        display: "block",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        textDecoration: "none",
+                        transition: "background 0.15s ease",
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#F7F8F9")}
+                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
-                      <div className="text-sm font-semibold text-[#091E42]">{item.title}</div>
-                      <div className="text-xs text-[#626F86] mt-0.5 leading-snug">{item.desc}</div>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "#091E42" }}>{item.title}</div>
+                      <div style={{ fontSize: "12px", color: "#626F86", marginTop: "2px" }}>{item.desc}</div>
                     </Link>
                   ))}
                 </div>
@@ -78,28 +171,64 @@ export function AtlassianNavbar() {
 
             {/* Clinical AI Dropdown */}
             <div
-              className="relative"
+              style={{ position: "relative" }}
               onMouseEnter={() => setActiveDropdown("ai")}
               onMouseLeave={() => setActiveDropdown(null)}
             >
-              <button className="flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors">
+              <button
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  padding: "8px 12px",
+                  fontSize: "14px",
+                  fontWeight: 500,
+                  color: "#44546F",
+                  backgroundColor: activeDropdown === "ai" ? "#F1F2F4" : "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  transition: "all 0.15s ease",
+                }}
+              >
                 <span>Clinical AI</span>
-                <ChevronDown size={14} className="opacity-70" />
+                <ChevronDown size={14} style={{ opacity: 0.7 }} />
               </button>
 
               {activeDropdown === "ai" && (
-                <div className="absolute left-0 top-full w-80 rounded-xl border border-[#DFE1E6] bg-white p-3 shadow-xl animate-fade-in-up">
-                  <div className="text-[11px] font-bold uppercase tracking-wider text-[#626F86] px-3 py-1 mb-1">
+                <div
+                  style={{
+                    position: "absolute",
+                    top: "100%",
+                    left: 0,
+                    width: "320px",
+                    backgroundColor: "#FFFFFF",
+                    border: "1px solid #DFE1E6",
+                    borderRadius: "10px",
+                    padding: "12px",
+                    boxShadow: "0 12px 24px -4px rgba(9, 30, 66, 0.18)",
+                    zIndex: 100,
+                  }}
+                >
+                  <div style={{ fontSize: "11px", fontWeight: 700, textTransform: "uppercase", color: "#626F86", padding: "4px 8px 8px" }}>
                     AI Architectures
                   </div>
                   {clinicalAi.map((item, idx) => (
                     <Link
                       key={idx}
                       href={item.href}
-                      className="block rounded-lg p-2.5 hover:bg-[#F7F8F9] transition-colors no-underline"
+                      style={{
+                        display: "block",
+                        padding: "10px",
+                        borderRadius: "8px",
+                        textDecoration: "none",
+                        transition: "background 0.15s ease",
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#F7F8F9")}
+                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
                     >
-                      <div className="text-sm font-semibold text-[#091E42]">{item.title}</div>
-                      <div className="text-xs text-[#626F86] mt-0.5 leading-snug">{item.desc}</div>
+                      <div style={{ fontSize: "13.5px", fontWeight: 600, color: "#091E42" }}>{item.title}</div>
+                      <div style={{ fontSize: "12px", color: "#626F86", marginTop: "2px" }}>{item.desc}</div>
                     </Link>
                   ))}
                 </div>
@@ -108,74 +237,146 @@ export function AtlassianNavbar() {
 
             <a
               href="#triage-board"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors no-underline"
+              style={{
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "#44546F",
+                textDecoration: "none",
+                borderRadius: "6px",
+              }}
             >
               Triage Board
             </a>
 
             <a
-              href="#architecture"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors no-underline"
+              href="#clinical-setup"
+              style={{
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "#44546F",
+                textDecoration: "none",
+                borderRadius: "6px",
+              }}
             >
-              Architecture
+              Medical Setup
             </a>
 
             <a
-              href="#compliance"
-              className="rounded-md px-3 py-2 text-sm font-medium text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors no-underline"
+              href="#architecture"
+              style={{
+                padding: "8px 12px",
+                fontSize: "14px",
+                fontWeight: 500,
+                color: "#44546F",
+                textDecoration: "none",
+                borderRadius: "6px",
+              }}
             >
-              Why MediFlow
+              Architecture
             </a>
           </nav>
         </div>
 
         {/* Right: Actions, Search & Sign In */}
-        <div className="flex items-center gap-3">
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           <button
             onClick={() => openSignInModal()}
-            className="hidden sm:flex h-9 w-9 items-center justify-center rounded-md text-[#44546F] hover:bg-[#F1F2F4] hover:text-[#091E42] transition-colors"
-            title="Search or shortcut"
-            aria-label="Search"
+            style={{
+              width: "36px",
+              height: "36px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "transparent",
+              border: "none",
+              borderRadius: "6px",
+              color: "#44546F",
+              cursor: "pointer",
+            }}
+            title="Search triage protocols"
           >
             <Search size={18} />
           </button>
 
           {user ? (
             /* Logged in state */
-            <div className="flex items-center gap-3">
-              <div className="hidden sm:flex items-center gap-2 rounded-full border border-[#DFE1E6] bg-[#F7F8F9] px-3 py-1 text-xs">
-                <span className="h-2 w-2 rounded-full bg-[#22A06B]" />
-                <span className="font-semibold text-[#091E42] max-w-[120px] truncate">
-                  {user.displayName || "Active Clinician"}
-                </span>
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  padding: "4px 10px",
+                  borderRadius: "999px",
+                  border: "1px solid #DFE1E6",
+                  backgroundColor: "#F7F8F9",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  color: "#091E42",
+                }}
+              >
+                <span style={{ width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#22A06B" }} />
+                <span>{user.displayName || "Active Clinician"}</span>
               </div>
               <Link
                 href="/admin"
-                className="flex items-center gap-1.5 rounded-md bg-[#0C66E4] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0052CC] transition-colors no-underline"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "8px 16px",
+                  borderRadius: "6px",
+                  backgroundColor: "#0C66E4",
+                  color: "#FFFFFF",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  textDecoration: "none",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.12)",
+                }}
               >
                 <span>Console</span>
                 <ArrowRight size={14} />
               </Link>
             </div>
           ) : (
-            /* Unauthenticated state: Atlassian Sign in & Get Started buttons */
-            <div className="flex items-center gap-2">
+            /* Unauthenticated state */
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <button
                 onClick={() => openSignInModal()}
-                className="rounded-md px-3 py-2 text-sm font-semibold text-[#0C66E4] hover:bg-[#E9F2FF] transition-colors"
+                style={{
+                  padding: "8px 14px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#0C66E4",
+                  backgroundColor: "transparent",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                }}
               >
                 Sign in
               </button>
               <button
                 onClick={() => openSignInModal()}
-                className="rounded-md bg-[#0C66E4] px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-[#0052CC] transition-colors"
+                style={{
+                  padding: "8px 16px",
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  color: "#FFFFFF",
+                  backgroundColor: "#0C66E4",
+                  border: "none",
+                  borderRadius: "6px",
+                  cursor: "pointer",
+                  boxShadow: "0 1px 2px rgba(9, 30, 66, 0.15)",
+                }}
               >
                 Get started free
               </button>
             </div>
           )}
         </div>
-
       </div>
     </header>
   );

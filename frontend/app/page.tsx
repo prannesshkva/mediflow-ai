@@ -3,8 +3,8 @@
 import React from "react";
 import { AtlassianNavbar } from "@/components/home/AtlassianNavbar";
 import { AtlassianHero } from "@/components/home/AtlassianHero";
-import { ClinicalInstrumentsSetup } from "@/components/home/ClinicalInstrumentsSetup";
 import { AtlassianTriageBoard } from "@/components/home/AtlassianTriageBoard";
+import { ClinicalInstrumentsSetup } from "@/components/home/ClinicalInstrumentsSetup";
 import { AtlassianFeatures } from "@/components/home/AtlassianFeatures";
 import { AtlassianMetrics } from "@/components/home/AtlassianMetrics";
 import { AtlassianCTA } from "@/components/home/AtlassianCTA";
@@ -12,18 +12,25 @@ import { AtlassianFooter } from "@/components/home/AtlassianFooter";
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white text-[#172B4D] selection:bg-[#DEEBFF] selection:text-[#0C66E4]">
-      {/* Atlassian Top Navigation Header with Sign In & Launch buttons */}
+    <div
+      style={{
+        minHeight: "100vh",
+        backgroundColor: "#FFFFFF",
+        color: "#172B4D",
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif',
+      }}
+    >
+      {/* Atlassian Top Navigation Header */}
       <AtlassianNavbar />
 
-      {/* Hero Section styled with Atlassian & Slack font & typography */}
+      {/* Atlassian Hero Section */}
       <AtlassianHero />
 
-      {/* Medical Instruments & Clinical Telemetry Setup with Atlassian Sign-In Gateway */}
-      <ClinicalInstrumentsSetup />
-
-      {/* Interactive Atlassian Jira-Style Clinical Triage & Operations Board */}
+      {/* Atlassian Jira-Style Clinical Triage & Operations Board (Directly Matching Image 2 Showcase) */}
       <AtlassianTriageBoard />
+
+      {/* Clinical Telemetry & Medical Diagnostic Instruments Setup with Sign-In Portal */}
+      <ClinicalInstrumentsSetup />
 
       {/* Architecture & Multi-Agent Feature Pillars */}
       <AtlassianFeatures />
@@ -31,7 +38,7 @@ export default function HomePage() {
       {/* Verified Clinical Safety & Performance Metrics */}
       <AtlassianMetrics />
 
-      {/* Blue Action Banner */}
+      {/* Action Banner */}
       <AtlassianCTA />
 
       {/* Multi-Column Atlassian Footer */}
