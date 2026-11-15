@@ -382,17 +382,17 @@ body {
 }
 .data-table tr:hover td { background: var(--bg-card-hover); }
 
-/* ─── Markdown Output (Slack & Clinical SaaS Typography) ─────────────────── */
+/* ─── Markdown Output (Adaptive, High Contrast, Non-Neon) ─────────────────── */
 .markdown-output {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.65;
-  color: #E2E8F0;
+  font-size: 14.5px;
+  line-height: 1.68;
+  color: var(--text-primary);
   letter-spacing: -0.01em;
 }
 
 .markdown-output h1, .markdown-output h2, .markdown-output h3, .markdown-output h4 {
-  color: #F8FAFC;
+  color: var(--text-primary);
   margin-top: 14px;
   margin-bottom: 8px;
   font-weight: 700;
@@ -404,37 +404,37 @@ body {
 
 .markdown-output h3 {
   font-size: 15px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  border-bottom: 1px solid var(--border);
   padding-bottom: 6px;
 }
 
 .markdown-output p {
-  color: #E2E8F0;
+  color: var(--text-primary);
   margin-top: 0;
   margin-bottom: 10px;
-  line-height: 1.65;
+  line-height: 1.68;
 }
 
 .markdown-output ul, .markdown-output ol {
   padding-left: 20px;
   margin-top: 4px;
   margin-bottom: 12px;
-  color: #CBD5E1;
+  color: var(--text-secondary);
 }
 
 .markdown-output li {
   margin-bottom: 5px;
-  line-height: 1.55;
+  line-height: 1.58;
 }
 
 .markdown-output strong {
-  color: #FFFFFF;
-  font-weight: 600;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .markdown-output hr {
   border: none;
-  border-top: 1px solid #1E293B;
+  border-top: 1px solid var(--border);
   margin: 16px 0;
 }
 
@@ -444,16 +444,16 @@ body {
   border-collapse: separate;
   border-spacing: 0;
   margin: 14px 0;
-  background: #0B111E;
-  border: 1px solid #202D42;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
   font-size: 13.5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
 .markdown-output thead {
-  background: #141E30;
+  background: var(--bg-card-hover);
 }
 
 .markdown-output th {
@@ -463,14 +463,14 @@ body {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  color: #94A3B8;
-  border-bottom: 1px solid #202D42;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
 }
 
 .markdown-output td {
   padding: 10px 14px;
-  color: #E2E8F0;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  color: var(--text-primary);
+  border-bottom: 1px solid var(--border);
   vertical-align: middle;
 }
 
@@ -479,25 +479,25 @@ body {
 }
 
 .markdown-output tr:hover td {
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--bg-card-hover);
 }
 
 .markdown-output code {
   font-family: 'JetBrains Mono', Consolas, monospace;
-  background: #111A29;
+  background: var(--bg-card-hover);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
-  color: #38BDF8;
-  border: 1px solid #1E2D44;
+  color: var(--accent-cyan);
+  border: 1px solid var(--border);
 }
 
 .markdown-output blockquote {
-  border-left: 3px solid #38BDF8;
+  border-left: 3px solid var(--accent-cyan);
   padding: 8px 14px;
   margin: 10px 0;
-  color: #94A3B8;
-  background: #0E1626;
+  color: var(--text-secondary);
+  background: var(--bg-card-hover);
   border-radius: 0 6px 6px 0;
   font-size: 13.5px;
 }

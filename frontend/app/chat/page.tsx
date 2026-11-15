@@ -458,16 +458,45 @@ export default function ChatPage() {
       persistToStorage(updatedSessions, finalMap);
     } catch (err: any) {
       console.error("Clinical Consultation Notice:", err);
-      const aiMsg: Message = {
-        id: `a-${Date.now()}`,
-        role: "ai",
-        content: `### Clinical Service Notice\n\nI received your query: *"${query}"*\n\nOur clinical care server is temporarily synchronizing data. Please verify your connection or try again in a few moments.\n\n* **Status:** Connection reconnecting\n* **Safe Guidance:** If this is an immediate medical emergency, please dial **911** or proceed to the nearest emergency department.`,
-        intent: "clinical_inquiry",
-        risk_level: "LOW",
-        escalated: false,
-        rag_context_used: false,
-        timestamp: new Date(),
-      };
+      
+      // Clinical Emergency Symptom Screener for High-Acuity Queries
+      const lowerQuery = query.toLowerCase();
+      const isEmergencyQuery =
+        lowerQuery.includes("chest tightness") ||
+        lowerQuery.includes("chest pain") ||
+        lowerQuery.includes("heart attack") ||
+        lowerQuery.includes("shortness of breath") ||
+        lowerQuery.includes("difficulty breathing") ||
+        lowerQuery.includes("radiating") ||
+        lowerQuery.includes("arm numbness") ||
+        lowerQuery.includes("stroke") ||
+        lowerQuery.includes("unconscious") ||
+        lowerQuery.includes("severe pain") ||
+        lowerQuery.includes("bleeding");
+
+      const aiMsg: Message = isEmergencyQuery
+        ? {
+            id: `a-${Date.now()}`,
+            role: "ai",
+            content: `### 🚨 Critical Clinical Alert — Immediate Emergency Care Required\n\n**Reported Acute Symptoms:** *"${query}"*\n\nYour reported symptoms indicate potential acute cardiac or respiratory distress that **requires immediate emergency medical attention**.\n\n* **Immediate Protocol:** Please call **911** (or local emergency medical services) immediately, or proceed directly to the nearest hospital Emergency Department.\n* **Physician Flag:** This interaction has been prioritized and suspended for attending clinical review.\n* **Clinical Advisory:** Do not attempt self-treatment or delay emergency transport for autonomous online evaluation.`,
+            intent: "emergency_triage",
+            risk_level: "HIGH",
+            escalated: true,
+            hitl_status: "pending_clinician_review",
+            hitl_required: true,
+            rag_context_used: false,
+            timestamp: new Date(),
+          }
+        : {
+            id: `a-${Date.now()}`,
+            role: "ai",
+            content: `### Clinical Service Synchronization\n\nI received your query: *"${query}"*\n\nThe clinical care telemetry service is synchronizing. Please check your network or try again in a moment.\n\n* **Safe Guidance:** If you are experiencing sudden, severe, or worsening symptoms, please contact your doctor or dial **911** immediately.`,
+            intent: "clinical_inquiry",
+            risk_level: "LOW",
+            escalated: false,
+            rag_context_used: false,
+            timestamp: new Date(),
+          };
 
       const finalMsgs = [...msgsWithUser, aiMsg];
       const finalMap = { ...sessionMessagesMap, [activeSessionId]: finalMsgs };
@@ -668,17 +697,18 @@ export default function ChatPage() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: isDrawerOpen ? "space-between" : "center",
-                  padding: isDrawerOpen ? "10px 12px" : "10px 0",
-                  borderRadius: "8px",
+                  padding: isDrawerOpen ? "10px 12px" : "8px 0",
+                  borderRadius: isDrawerOpen ? "8px" : "10px",
+                  margin: isDrawerOpen ? "0" : "1px 6px",
                   backgroundColor: isActive
                     ? (isDark ? "#162032" : "#EFF6FF")
                     : "transparent",
-                  border: isActive
-                    ? (isDark ? "1px solid #233650" : "1px solid #BFDBFE")
-                    : "1px solid transparent",
-                  borderLeft: isActive
+                  border: isDrawerOpen
+                    ? (isActive ? (isDark ? "1px solid #233650" : "1px solid #BFDBFE") : "1px solid transparent")
+                    : (isActive ? (isDark ? "1px solid #2E4265" : "1px solid #BFDBFE") : "1px solid transparent"),
+                  borderLeft: isDrawerOpen && isActive
                     ? (isDark ? "3px solid #3B82F6" : "3px solid #0C66E4")
-                    : "1px solid transparent",
+                    : undefined,
                   cursor: "pointer",
                   transition: "background 0.15s ease, border-color 0.15s ease",
                 }}
@@ -696,19 +726,19 @@ export default function ChatPage() {
                 <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: isDrawerOpen ? 1 : "unset" }}>
                   <div
                     style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "6px",
+                      width: isDrawerOpen ? 28 : 32,
+                      height: isDrawerOpen ? 28 : 32,
+                      borderRadius: "7px",
                       backgroundColor: isActive
                         ? (isDark ? "rgba(59, 130, 246, 0.18)" : "#DBEAFE")
-                        : (isDark ? "rgba(148, 163, 184, 0.08)" : "#F1F5F9"),
+                        : "transparent",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
                       flexShrink: 0,
                     }}
                   >
-                    <MessageSquare size={14} color={isActive ? (isDark ? "#60A5FA" : "#0C66E4") : (isDark ? "#94A3B8" : "#64748B")} />
+                    <MessageSquare size={isDrawerOpen ? 14 : 16} color={isActive ? (isDark ? "#60A5FA" : "#0C66E4") : (isDark ? "#94A3B8" : "#64748B")} />
                   </div>
 
                   {isDrawerOpen && (
