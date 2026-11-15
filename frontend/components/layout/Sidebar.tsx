@@ -130,41 +130,56 @@ export function Sidebar() {
           })}
       </div>
 
-      <div style={{ marginTop: "12px" }}>
-        <div
-          style={{
-            fontSize: "10px",
-            fontWeight: 600,
-            color: "#4A5680",
-            letterSpacing: "1px",
-            padding: "0 10px",
-            marginBottom: "6px",
-          }}
-        >
-          ADMIN
+      {/* Admin Section — STRICTLY AUTHORIZED FOR prannesshkva@gmail.com ALONE */}
+      {user?.email?.toLowerCase() === "prannesshkva@gmail.com" && (
+        <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 700,
+              color: "#38BDF8",
+              letterSpacing: "1px",
+              padding: "0 10px",
+              marginBottom: "8px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <span>CLINICAL DIRECTOR</span>
+            <span style={{ fontSize: "9px", background: "rgba(56, 189, 248, 0.15)", padding: "1px 5px", borderRadius: "4px", border: "1px solid rgba(56, 189, 248, 0.3)" }}>
+              ROOT
+            </span>
+          </div>
+          {navItems
+            .filter((i) => i.section === "admin")
+            .map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={`sidebar-link ${isActive ? "active" : ""}`}
+                  style={{
+                    background: isActive ? "linear-gradient(90deg, rgba(2, 132, 199, 0.2) 0%, rgba(37, 99, 235, 0.1) 100%)" : undefined,
+                    border: isActive ? "1px solid rgba(56, 189, 248, 0.3)" : undefined,
+                    color: isActive ? "#38BDF8" : undefined,
+                  }}
+                >
+                  <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} color={isActive ? "#38BDF8" : undefined} />
+                  <span style={{ fontWeight: isActive ? 700 : 500 }}>{item.label}</span>
+                  {isActive && (
+                    <ChevronRight
+                      size={14}
+                      color="#38BDF8"
+                      style={{ marginLeft: "auto", opacity: 0.8 }}
+                    />
+                  )}
+                </Link>
+              );
+            })}
         </div>
-        {navItems
-          .filter((i) => i.section === "admin")
-          .map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar-link ${isActive ? "active" : ""}`}
-              >
-                <item.icon size={16} strokeWidth={isActive ? 2.5 : 2} />
-                <span>{item.label}</span>
-                {isActive && (
-                  <ChevronRight
-                    size={14}
-                    style={{ marginLeft: "auto", opacity: 0.6 }}
-                  />
-                )}
-              </Link>
-            );
-          })}
-      </div>
+      )}
 
       <div style={{ marginTop: "auto" }}>
         {loading ? (

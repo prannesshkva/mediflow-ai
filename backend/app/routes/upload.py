@@ -4,7 +4,7 @@ import time
 from typing import List, Optional
 from fastapi import APIRouter, HTTPException, UploadFile, File, Form, Depends
 
-from app.auth import get_current_user, User
+from app.auth import get_current_user, require_admin_user, User
 from app.core.circuit_breaker import get_circuit_breaker
 from app.database.supabase import db
 from app.database.models import (
@@ -17,7 +17,7 @@ from app.graph.workflow import resume_workflow_after_hitl
 from app.rag.ingest import parse_clinical_document_async, batch_ingest_documents_async
 
 upload_router = APIRouter()
-admin_router = APIRouter(prefix="/admin")
+admin_router = APIRouter(prefix="/admin", dependencies=[Depends(require_admin_user)])
 
 MOCK_SUMMARIES = [
     "Blood glucose levels slightly elevated (112 mg/dL fasting). HbA1c within normal range at 5.8%. Recommend dietary changes and follow-up in 3 months.",

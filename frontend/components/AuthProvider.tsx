@@ -5,6 +5,8 @@ import { User, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { Heart, LogIn, UserCheck, Stethoscope } from "lucide-react";
 
+export const ADMIN_EMAIL = "prannesshkva@gmail.com";
+
 export interface DemoUser {
   uid: string;
   email: string | null;
@@ -19,6 +21,7 @@ interface AuthContextType {
   user: User | DemoUser | null;
   loading: boolean;
   isDemoUser: boolean;
+  isAdmin: boolean;
   loginAsDemoClinician: () => void;
   loginAsDemoPatient: () => void;
   logout: () => Promise<void>;
@@ -28,6 +31,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isDemoUser: false,
+  isAdmin: false,
   loginAsDemoClinician: () => {},
   loginAsDemoPatient: () => {},
   logout: async () => {},
@@ -72,9 +76,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setDemoClinicianState = () => {
     const demo: DemoUser = {
-      uid: "clinician-001",
-      email: "dr.prannessh@metrohealth.org",
-      displayName: "Dr. Prannessh KVA, MD",
+      uid: "admin-prannessh",
+      email: ADMIN_EMAIL,
+      displayName: "Prannessh KVA",
       photoURL: null,
       tenant_id: "tenant-default",
       role: "clinician",
@@ -89,9 +93,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setDemoPatientState = () => {
     const demo: DemoUser = {
-      uid: "patient-001",
-      email: "raj.sharma@example.com",
-      displayName: "Raj Sharma",
+      uid: "patient-user",
+      email: "patient@mediflow.internal",
+      displayName: "Patient User",
       photoURL: null,
       tenant_id: "tenant-default",
       role: "patient",
@@ -191,7 +195,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           )}
 
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {/* 1-Click Zero-Config Demo Clinician Access */}
+            {/* 1-Click Zero-Config Clinical Director Access */}
             <button
               onClick={setDemoClinicianState}
               style={{
@@ -215,10 +219,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <Stethoscope size={18} color="#0A0F1E" strokeWidth={2.5} />
-              Access as Demo Clinician (Instant Demo)
+              Enter as Clinical Director (prannesshkva@gmail.com)
             </button>
 
-            {/* Demo Patient Access */}
+            {/* Patient Access */}
             <button
               onClick={setDemoPatientState}
               style={{
@@ -241,12 +245,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               onMouseOut={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"}
             >
               <UserCheck size={18} color="#00D4FF" />
-              Access as Demo Patient
+              Enter as Patient User
             </button>
 
             <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "6px 0", color: "#64748B", fontSize: "12px" }}>
               <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
-              OR SIGN IN
+              OR GOOGLE SIGN IN
               <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
             </div>
 
@@ -278,11 +282,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
+  const isAdmin = Boolean(user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+
   return (
     <AuthContext.Provider value={{
       user,
       loading,
       isDemoUser,
+      isAdmin,
       loginAsDemoClinician: setDemoClinicianState,
       loginAsDemoPatient: setDemoPatientState,
       logout,

@@ -4,44 +4,43 @@ CLINIC INFORMATION
 ==================
 Name: MediFlow Clinic
 Address: 12, Healthcare Avenue, Koramangala, Bangalore - 560034
-Phone: +91-9876543210
 Email: care@mediflow.in
 Working Hours: Monday to Saturday, 8:00 AM to 8:00 PM
-Emergency: 24/7 available, call +91-9876543210
+Emergency: 24/7 available on-site emergency triage wing
 
 APPOINTMENT POLICIES
 ====================
-- Appointments can be booked online, by phone, or in-person
+- Appointments can be booked online via MediFlow portal or in-person
 - Patients should arrive 15 minutes before their scheduled time
 - Bring valid photo ID, insurance card, and previous medical records
 - Cancellations must be made at least 24 hours in advance
 - No-show fee: ₹200 (waived for genuine emergencies)
-- Same-day emergency appointments available at +91-9876543210
+- Same-day emergency triage available on-site
 
-AVAILABLE DOCTORS
-================
-1. Dr. Priya Mehta - General Physician (MBBS, MD)
+CLINICAL DEPARTMENTS & SPECIALTIES
+==================================
+1. Department of General Medicine
    Specialization: General medicine, preventive care, chronic disease management
    Available: Mon-Sat, 9 AM - 1 PM and 4 PM - 7 PM
 
-2. Dr. Arun Kapoor - Cardiologist (MBBS, DM Cardiology)
-   Specialization: Heart disease, hypertension, ECG, echo
+2. Department of Cardiology
+   Specialization: Heart disease, hypertension, ECG, echocardiography
    Available: Mon, Wed, Fri - 10 AM - 2 PM
 
-3. Dr. Sunita Rao - Dermatologist (MBBS, MD Dermatology)
-   Specialization: Skin conditions, hair loss, cosmetic dermatology
+3. Department of Dermatology
+   Specialization: Skin conditions, hair loss, clinical dermatology
    Available: Tue, Thu, Sat - 10 AM - 1 PM
 
-4. Dr. Vikram Singh - Orthopedic Surgeon (MBBS, MS Ortho)
+4. Department of Orthopedics
    Specialization: Bone and joint disorders, fractures, sports injuries
    Available: Mon-Wed-Fri - 3 PM - 7 PM
 
-5. Dr. Anjali Sharma - Gynecologist (MBBS, MS Gynecology)
+5. Department of Gynecology & Women's Health
    Specialization: Women's health, prenatal care, reproductive health
    Available: Mon-Sat - 9 AM - 12 PM
 
-6. Dr. Ravi Kumar - Pediatrician (MBBS, DCH)
-   Specialization: Child health, vaccinations, growth monitoring
+6. Department of Pediatrics
+   Specialization: Child health, pediatric care, growth monitoring
    Available: Mon-Sat - 9 AM - 5 PM
 
 CONSULTATION FEES
@@ -87,9 +86,8 @@ Home delivery available within 5 km radius
 EMERGENCY PROCEDURES
 ====================
 For life-threatening emergencies:
-1. Call 112 (National Emergency Number)
-2. Call 108 (Ambulance Service)
-3. MediFlow Emergency Line: +91-9876543210
+1. Proceed directly to the nearest hospital emergency room
+2. MediFlow Emergency Wing is open 24/7 for acute in-person clinical stabilization
 
 Symptoms requiring immediate emergency care:
 - Chest pain or pressure

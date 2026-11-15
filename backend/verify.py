@@ -29,7 +29,7 @@ for query, exp_intent, exp_risk, exp_hitl in tests:
     print(f"[{label}] intent={r['intent']} risk={r['risk_level']} hitl_required={r['hitl_required']} hitl_status={r['hitl_status']} agents={len(r['agent_trace'])}")
     print(f"       query: {query[:60]}")
     if exp_hitl and r.get("hitl_review_id"):
-        resumed = resume_workflow_after_hitl(r["hitl_review_id"], action="approve", clinician_id="dr-priya-01")
+        resumed = resume_workflow_after_hitl(r["hitl_review_id"], action="approve", clinician_id="clinician-director")
         print(f"       -> HITL Review Approved: {resumed['status']} (clinician: {resumed['clinician_id']})")
     print()
 

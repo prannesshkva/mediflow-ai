@@ -9,13 +9,13 @@ from datetime import datetime, timezone
 
 from app.database.supabase import db
 
-DOCTORS = [
-    "Dr. Priya Mehta (General Physician)",
-    "Dr. Arun Kapoor (Cardiologist)",
-    "Dr. Sunita Rao (Dermatologist)",
-    "Dr. Vikram Singh (Orthopedic)",
-    "Dr. Anjali Sharma (Gynecologist)",
-    "Dr. Ravi Kumar (Pediatrician)",
+DEPARTMENTS = [
+    "Department of General Medicine",
+    "Department of Cardiology",
+    "Department of Dermatology",
+    "Department of Orthopedics",
+    "Department of Gynecology & Women's Health",
+    "Department of Pediatrics",
 ]
 
 def _extract_appointment_info(query: str, intent: str, patient_name: str) -> Dict:
@@ -28,26 +28,25 @@ def _extract_appointment_info(query: str, intent: str, patient_name: str) -> Dic
     elif intent == "appointment_reschedule" or any(w in q for w in ["reschedule", "change", "move", "postpone"]):
         action = "reschedule"
 
+    # Extract any physician name explicitly requested in query
     doctor = None
-    for d in DOCTORS:
-        name = d.split("(")[0].strip().lower()
-        if name.replace("dr. ", "") in q:
-            doctor = d
-            break
+    dr_match = re.search(r"(?:dr\.?|doctor)\s+([A-Za-z]+(?:\s+[A-Za-z]+)?)", query, re.IGNORECASE)
+    if dr_match:
+        doctor = f"Dr. {dr_match.group(1).title()}"
 
     if not doctor:
         if any(w in q for w in ["heart", "cardiac", "cardio"]):
-            doctor = "Dr. Arun Kapoor (Cardiologist)"
+            doctor = "Department of Cardiology"
         elif any(w in q for w in ["skin", "derma", "acne", "rash"]):
-            doctor = "Dr. Sunita Rao (Dermatologist)"
+            doctor = "Department of Dermatology"
         elif any(w in q for w in ["bone", "joint", "ortho", "fracture"]):
-            doctor = "Dr. Vikram Singh (Orthopedic)"
+            doctor = "Department of Orthopedics"
         elif any(w in q for w in ["child", "baby", "pediatric", "kid"]):
-            doctor = "Dr. Ravi Kumar (Pediatrician)"
+            doctor = "Department of Pediatrics"
         elif any(w in q for w in ["gynec", "women", "pregnancy", "period"]):
-            doctor = "Dr. Anjali Sharma (Gynecologist)"
+            doctor = "Department of Gynecology & Women's Health"
         else:
-            doctor = "Dr. Priya Mehta (General Physician)"
+            doctor = "Department of General Medicine"
 
     date_str = None
     from datetime import timedelta
@@ -129,12 +128,12 @@ def run_appointment_agent(
     elif info["action"] == "cancel":
         result = {
             "action": "cancel_requested",
-            "message": "Please call +91-9876543210 or visit the clinic to confirm cancellation.",
+            "message": "Please visit the clinic reception desk or manage your booking directly in the Appointments section.",
         }
     else:
         result = {
             "action": "reschedule_requested",
-            "message": "Please call +91-9876543210 to reschedule your appointment.",
+            "message": "Please visit the clinic reception desk or select a new date in the Appointments section.",
         }
 
     duration = int((time.time() - start) * 1000)

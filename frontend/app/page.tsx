@@ -1,14 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { Bot, Calendar, Activity, AlertTriangle, FileText, ArrowRight, Heart, Clock, CheckCircle } from "lucide-react";
+import { Bot, Calendar, Activity, AlertTriangle, FileText, ArrowRight, Heart, Clock, CheckCircle, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/components/AuthProvider";
 
-const quickActions = [
+const baseQuickActions = [
   {
     href: "/chat",
     icon: Bot,
     label: "Ask AI Assistant",
-    desc: "Get instant answers about your health & clinic",
+    desc: "Get instant evidence-grounded answers about your health & clinic",
     color: "#00D4FF",
     bg: "rgba(0, 212, 255, 0.1)",
     border: "rgba(0, 212, 255, 0.2)",
@@ -17,7 +18,7 @@ const quickActions = [
     href: "/appointments",
     icon: Calendar,
     label: "Book Appointment",
-    desc: "Schedule with our specialist doctors",
+    desc: "Schedule with our specialized clinical departments",
     color: "#7C3AED",
     bg: "rgba(124, 58, 237, 0.1)",
     border: "rgba(124, 58, 237, 0.2)",
@@ -26,27 +27,28 @@ const quickActions = [
     href: "/reports",
     icon: FileText,
     label: "Upload Report",
-    desc: "Get AI-powered analysis of your medical reports",
+    desc: "Non-blocking AI extraction of structured clinical metrics",
     color: "#10B981",
     bg: "rgba(16, 185, 129, 0.1)",
     border: "rgba(16, 185, 129, 0.2)",
   },
-  {
-    href: "/admin",
-    icon: Activity,
-    label: "Admin Dashboard",
-    desc: "Monitor operations and patient workflows",
-    color: "#F59E0B",
-    bg: "rgba(245, 158, 11, 0.1)",
-    border: "rgba(245, 158, 11, 0.2)",
-  },
 ];
 
+const adminAction = {
+  href: "/admin",
+  icon: Activity,
+  label: "Clinical Command Center",
+  desc: "Licensed Director Oversight & Circuit Breaker Telemetry",
+  color: "#F59E0B",
+  bg: "rgba(245, 158, 11, 0.1)",
+  border: "rgba(245, 158, 11, 0.2)",
+};
+
 const recentActivity = [
-  { icon: Calendar, text: "Appointment confirmed — Dr. Priya Mehta", time: "2 min ago", color: "#00D4FF" },
-  { icon: AlertTriangle, text: "High-risk escalation: Chest pain reported", time: "8 min ago", color: "#F43F5E" },
-  { icon: CheckCircle, text: "Report summary generated for Raj Sharma", time: "15 min ago", color: "#10B981" },
-  { icon: Bot, text: "12 patient queries handled by AI today", time: "1 hr ago", color: "#7C3AED" },
+  { icon: Calendar, text: "Appointment routed — Department of General Medicine", time: "Active", color: "#00D4FF" },
+  { icon: ShieldCheck, text: "Automated contraindication safety screening completed", time: "Active", color: "#10B981" },
+  { icon: AlertTriangle, text: "HITL clinician oversight gate standing by", time: "Active", color: "#F59E0B" },
+  { icon: Bot, text: "Multi-agent LangGraph clinical pipeline online", time: "Active", color: "#7C3AED" },
 ];
 
 const agents = [
@@ -59,6 +61,9 @@ const agents = [
 ];
 
 export default function HomePage() {
+  const { user } = useAuth();
+  const isAdmin = user?.email?.toLowerCase() === "prannesshkva@gmail.com";
+  const quickActions = isAdmin ? [...baseQuickActions, adminAction] : baseQuickActions;
   return (
     <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>
       

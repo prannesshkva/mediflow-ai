@@ -39,8 +39,8 @@ def test_multi_tenant_state_isolation():
 
     # Seed an appointment in Tenant A
     appt_a = db.create_appointment({
-        "patient_name": "Arjun Patel",
-        "doctor_name": "Dr. R. Sharma",
+        "patient_name": "Patient-Tenant-A",
+        "doctor_name": "Department of Cardiology",
         "appointment_date": "2026-06-01T10:00:00Z",
         "tenant_id": tenant_a,
         "status": "confirmed",
@@ -50,8 +50,8 @@ def test_multi_tenant_state_isolation():
 
     # Seed an appointment in Tenant B
     appt_b = db.create_appointment({
-        "patient_name": "Meera Nair",
-        "doctor_name": "Dr. K. Iyer",
+        "patient_name": "Patient-Tenant-B",
+        "doctor_name": "Department of General Medicine",
         "appointment_date": "2026-06-02T11:00:00Z",
         "tenant_id": tenant_b,
         "status": "confirmed",
@@ -62,14 +62,14 @@ def test_multi_tenant_state_isolation():
     # Query Tenant A: must only see Tenant A appointments
     appts_a = db.get_appointments(tenant_id=tenant_a)
     patient_names_a = [a["patient_name"] for a in appts_a]
-    assert "Arjun Patel" in patient_names_a
-    assert "Meera Nair" not in patient_names_a
+    assert "Patient-Tenant-A" in patient_names_a
+    assert "Patient-Tenant-B" not in patient_names_a
 
     # Query Tenant B: must only see Tenant B appointments
     appts_b = db.get_appointments(tenant_id=tenant_b)
     patient_names_b = [b["patient_name"] for b in appts_b]
-    assert "Meera Nair" in patient_names_b
-    assert "Arjun Patel" not in patient_names_b
+    assert "Patient-Tenant-B" in patient_names_b
+    assert "Patient-Tenant-A" not in patient_names_b
 
     # Enforce tenant isolation on HITL review items
     review_a = db.create_hitl_review({
@@ -126,8 +126,8 @@ def test_hitl_suspension_on_emergency():
     query = "I have severe crushing chest pain radiating to my left jaw, shortness of breath, and profuse cold sweating."
     result = run_workflow(
         query=query,
-        patient_name="Vikram Singh",
-        user_id="user-vikram",
+        patient_name="Patient-Alpha",
+        user_id="user-alpha",
         tenant_id="tenant-test-emergency",
     )
 
@@ -147,7 +147,7 @@ def test_hitl_suspension_on_emergency():
     review = db.get_hitl_review(result["hitl_review_id"])
     assert review is not None
     assert review["status"] == "pending_clinician_review"
-    assert review["patient_name"] == "Vikram Singh"
+    assert review["patient_name"] == "Patient-Alpha"
     assert review["risk_level"] == "HIGH"
 
 
@@ -160,8 +160,8 @@ def test_hitl_clinician_approval_and_resume():
     review = db.create_hitl_review({
         "tenant_id": "tenant-test-hitl",
         "session_id": "sess-hitl-001",
-        "patient_name": "Sunita Rao",
-        "patient_id": "pat-sunita",
+        "patient_name": "Patient-Beta",
+        "patient_id": "pat-beta",
         "query": "Chest pressure and severe breathlessness",
         "intent": "emergency_symptom",
         "risk_level": "HIGH",
@@ -182,14 +182,14 @@ def test_hitl_clinician_approval_and_resume():
         review_id=review_id,
         action="modify",
         modified_response=custom_guidance,
-        clinician_id="dr_priya_cardio",
+        clinician_id="clinician-director",
         clinician_notes="Approved with aspirin intake instruction and ambulance dispatch warning.",
     )
 
     assert resumed is not None
     assert resumed["status"] == "clinician_approved"
     assert resumed["final_response"] == custom_guidance
-    assert resumed["clinician_id"] == "dr_priya_cardio"
+    assert resumed["clinician_id"] == "clinician-director"
 
     # Verify persistent database state
     updated_review = db.get_hitl_review(review_id)
@@ -434,10 +434,18 @@ async def test_fastapi_endpoints_end_to_end():
         assert reset_res.json()["message"] == "Circuit breaker reset to CLOSED"
         assert reset_res.json()["status"]["state"] == "CLOSED"
 
+        # 7b. Strict Admin Authorization Verification (Non-Admin 403 Block)
+        forbidden_res = await client.get(
+            "/admin/stats",
+            headers={"Authorization": "Bearer demo-patient-token"}
+        )
+        assert forbidden_res.status_code == 403
+        assert "prannesshkva@gmail.com" in forbidden_res.json()["detail"]
+
         # 8. Multi-turn Session Management & Context Endpoints
         session_id = f"test-sess-{uuid.uuid4()}"
         turn1_res = await client.post("/chat", json={
-            "query": "I would like to see Dr. Priya Mehta tomorrow morning.",
+            "query": "I would like to schedule a cardiology consultation tomorrow morning.",
             "patient_name": "Arjun Patel",
             "session_id": session_id,
             "tenant_id": "tenant-fastapi-test",
@@ -452,7 +460,7 @@ async def test_fastapi_endpoints_end_to_end():
             "session_id": session_id,
             "tenant_id": "tenant-fastapi-test",
             "history": [
-                {"role": "user", "content": "I would like to see Dr. Priya Mehta tomorrow morning."},
+                {"role": "user", "content": "I would like to schedule a cardiology consultation tomorrow morning."},
                 {"role": "assistant", "content": turn1_text},
             ],
         })

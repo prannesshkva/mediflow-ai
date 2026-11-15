@@ -44,9 +44,9 @@ def _format_appointment_response(appointment_data: Dict) -> str:
 * Bring previous medical records and current medications list.
 """
     elif action == "cancel_requested":
-        return "\n📋 **Cancellation Request Received**\n\nPlease call **+91-9876543210** or visit the clinic to confirm your cancellation. Cancellations must be made 24 hours in advance.\n"
+        return "\n📋 **Cancellation Request Received**\n\nPlease visit the clinic reception desk or manage your booking directly in the Appointments section. Cancellations must be made 24 hours in advance.\n"
     elif action == "reschedule_requested":
-        return "\n📅 **Reschedule Request**\n\nPlease call **+91-9876543210** to reschedule your appointment. Our team will find the next available slot for you.\n"
+        return "\n📅 **Reschedule Request Received**\n\nPlease visit the clinic reception desk or select a new date in the Appointments section. Our team will find the next available slot for you.\n"
     return ""
 
 _TEMPLATE_RESPONSES = {
@@ -60,66 +60,64 @@ Is there anything specific you'd like to know more about? I'm happy to help!""",
 
 {chr(10).join(f'• {c}' for c in ctx[:2])}
 
-**Available Doctors:**
-- Dr. Priya Mehta — General Physician
-- Dr. Arun Kapoor — Cardiologist
-- Dr. Sunita Rao — Dermatologist
-- Dr. Vikram Singh — Orthopedic
+**Clinical Departments & Available Specialties:**
+- General Medicine
+- Cardiology
+- Dermatology
+- Orthopedics
+- Pediatrics
+- Gynecology & Women's Health
 
-Please provide your preferred doctor and date, and I'll get that scheduled for you!""",
+Please let me know your preferred department or specialty and date, and I'll get that scheduled for you!""",
 
     "prescription_question": lambda ctx, q: f"""Regarding your prescription query:
 
 {chr(10).join(f'• {c}' for c in ctx[:3])}
 
-For specific medication advice, please consult with your doctor directly.""",
+For specific medication advice, please consult with your healthcare provider directly.""",
 
     "follow_up_request": lambda ctx, q: f"""Here's information about your follow-up:
 
 {chr(10).join(f'• {c}' for c in ctx[:3])}
 
-If you need to schedule a follow-up appointment, I can help with that!""",
+If you need to schedule a follow-up consultation, you can book one in the Appointments section!""",
 
     "general_inquiry": lambda ctx, q: f"""Thank you for reaching out to MediFlow AI! Here's what I can help you with:
 
 {chr(10).join(f'• {c}' for c in ctx[:3])}
 
-Feel free to ask about appointments, clinic hours, test results, or any other queries!""",
+Feel free to ask about appointments, clinic hours, diagnostic reports, or clinical departments!""",
 
-    "emergency_symptom": lambda ctx, q: """**Please seek immediate medical attention.**
+    "emergency_symptom": lambda ctx, q: """**Please seek immediate emergency medical care.**
 
-Call **112** (Emergency Services) or **108** (Ambulance) immediately.
+Please proceed directly to the nearest hospital emergency room or acute care facility.
 
-MediFlow Emergency: **+91-9876543210** (24/7)
-
-Do not wait — emergency symptoms require in-person medical evaluation.""",
+Do not wait — acute or life-threatening symptoms require urgent in-person medical evaluation.""",
 
     "report_upload": lambda ctx, q: """Your report has been received and is being processed by our AI system.
 
 **What happens next:**
-1. Our AI will analyze and summarize your report
-2. You'll receive a summary within a few minutes
-3. A copy will be shared with your doctor
+1. Our AI analyzes and extracts structured clinical metrics and findings
+2. You can view the extracted summary in the Reports section
+3. The clinical payload is staged for healthcare provider review
 
-Please note that AI summaries are for informational purposes only and should be reviewed by your healthcare provider.""",
+Please note that AI summaries are for informational purposes only and should be reviewed by your clinician.""",
 
     "appointment_cancellation": lambda ctx, q: """I understand you'd like to cancel your appointment.
 
 To complete the cancellation:
-- **Online**: Use the Appointments section above
-- **Phone**: Call +91-9876543210
-- **In-person**: Visit the clinic reception
+- **Online**: Use the Appointments section in your portal
+- **In-person**: Visit the clinic reception desk
 
 Please note that cancellations must be made **24 hours in advance** to avoid a ₹200 no-show fee.""",
 
     "appointment_reschedule": lambda ctx, q: """I'd be happy to help you reschedule your appointment.
 
 **Options to reschedule:**
-- **Online**: Select a new date in the Appointments section
-- **Phone**: Call +91-9876543210
-- **Visit**: Stop by the reception desk
+- **Online**: Select a new date and time in the Appointments section
+- **In-person**: Stop by the clinic reception desk
 
-Would you like me to find available slots for a specific doctor or date?""",
+Would you like me to find available slots for a specific clinical department or date?""",
 }
 
 def _template_response(query: str, intent: str, context: List[str], appointment_data: Optional[Dict]) -> str:
@@ -163,7 +161,8 @@ Generate a helpful, empathetic, patient-friendly response in clean markdown.
 - Use bullet points and clear formatting where helpful
 - Do NOT give ungrounded medical diagnoses
 - Keep response concise but medically complete
-- If appointment was booked or referenced, include key confirmation details."""
+- If appointment was booked or referenced, include key confirmation details
+- Never output phone numbers or dummy doctor names; refer to clinical departments (e.g. Department of General Medicine, Cardiology) or the online portal."""
 
         messages: List[Dict[str, str]] = [
             {
@@ -241,7 +240,8 @@ Generate a helpful, empathetic, patient-friendly response in markdown format.
 - Use bullet points and formatting where helpful
 - Do NOT give specific medical diagnoses
 - Keep response concise but complete
-- If appointment was booked, include confirmation details"""
+- If appointment was booked, include confirmation details
+- Never output phone numbers or dummy doctor names; refer to clinical departments or the online portal"""
 
         response = model.generate_content(prompt)
         return response.text.strip()

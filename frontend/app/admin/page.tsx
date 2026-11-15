@@ -1,51 +1,51 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import {
-  AlertTriangle, Calendar, Bot, Users, CheckCircle,
-  Clock, TrendingUp, Activity, RefreshCw, MessageSquare,
-  ShieldCheck, ShieldAlert, Stethoscope, Edit3, XCircle, Send
+  AlertTriangle,
+  Calendar,
+  Bot,
+  Users,
+  CheckCircle,
+  Clock,
+  TrendingUp,
+  Activity,
+  RefreshCw,
+  MessageSquare,
+  ShieldCheck,
+  ShieldAlert,
+  Stethoscope,
+  Edit3,
+  XCircle,
+  Send,
+  Lock,
+  Cpu,
+  Layers,
+  Terminal,
 } from "lucide-react";
 import { adminApi, Escalation, AdminStats, HITLReviewItem } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import { format, parseISO } from "date-fns";
 
-const MOCK_STATS: AdminStats = {
-  appointments_today: 3,
-  high_risk_alerts: 2,
-  pending_approvals: 1,
-  pending_hitl_reviews: 1,
-  total_chats_today: 12,
-  resolved_escalations: 1,
+const INITIAL_STATS: AdminStats = {
+  appointments_today: 0,
+  high_risk_alerts: 0,
+  pending_approvals: 0,
+  pending_hitl_reviews: 0,
+  total_chats_today: 0,
+  resolved_escalations: 0,
   tenant_id: "tenant-default",
 };
 
-const MOCK_ESCALATIONS: Escalation[] = [
-  { id: "esc-001", tenant_id: "tenant-default", patient_name: "Sunita Rao", risk_level: "HIGH", issue: "Patient reported chest pain and difficulty breathing", query: "I have severe chest pain and I can't breathe properly", status: "open", created_at: "2026-05-20T17:00:00Z" },
-  { id: "esc-002", tenant_id: "tenant-default", patient_name: "Vikram Singh", risk_level: "HIGH", issue: "Patient experiencing severe allergic reaction symptoms", query: "My face is swelling and I have hives all over my body after taking medication", status: "reviewed", created_at: "2026-05-20T15:30:00Z" },
-  { id: "esc-003", tenant_id: "tenant-default", patient_name: "Deepa Nair", risk_level: "MEDIUM", issue: "Patient has persistent high fever for 3 days", query: "I've had a fever of 104°F for 3 days, is this serious?", status: "open", created_at: "2026-05-20T14:00:00Z" },
-];
-
-const MOCK_HITL_REVIEWS: HITLReviewItem[] = [
-  {
-    id: "hitl-001",
-    tenant_id: "tenant-default",
-    session_id: "sess-01",
-    patient_name: "Sunita Rao",
-    patient_id: "user-01",
-    query: "Severe chest pain radiating to left arm and sweating profusely",
-    intent: "emergency_symptom",
-    risk_level: "HIGH",
-    risk_reason: "Acute Coronary Syndrome red-line criteria triggered",
-    proposed_response: "🚨 EMERGENCY ALERT: Please call 112 / 911 immediately. Clinical triage has notified the on-call emergency response team.",
-    status: "pending_clinician_review",
-    created_at: "2026-05-20T17:05:00Z"
-  }
-];
-
 export default function AdminPage() {
-  const [stats, setStats] = useState<AdminStats>(MOCK_STATS);
-  const [escalations, setEscalations] = useState<Escalation[]>(MOCK_ESCALATIONS);
-  const [hitlReviews, setHitlReviews] = useState<HITLReviewItem[]>(MOCK_HITL_REVIEWS);
+  const { user, loading: authLoading } = useAuth();
+  const isAdmin = user?.email?.toLowerCase() === "prannesshkva@gmail.com";
+
+  const [activeTab, setActiveTab] = useState<"hitl" | "escalations" | "circuit" | "logs">("hitl");
+  const [stats, setStats] = useState<AdminStats>(INITIAL_STATS);
+  const [escalations, setEscalations] = useState<Escalation[]>([]);
+  const [hitlReviews, setHitlReviews] = useState<HITLReviewItem[]>([]);
   const [circuitBreaker, setCircuitBreaker] = useState<any>({ state: "CLOSED", healthy: true });
   const [refreshing, setRefreshing] = useState(false);
   const [editingReviewId, setEditingReviewId] = useState<string | null>(null);
@@ -54,16 +54,18 @@ export default function AdminPage() {
   const [actionSuccessMsg, setActionSuccessMsg] = useState("");
 
   useEffect(() => {
-    loadData();
-  }, []);
+    if (isAdmin) {
+      loadData();
+    }
+  }, [isAdmin]);
 
   const loadData = async () => {
     setRefreshing(true);
     try {
       const [s, e, h, cb] = await Promise.all([
-        adminApi.stats().catch(() => MOCK_STATS),
-        adminApi.escalations().catch(() => MOCK_ESCALATIONS),
-        adminApi.listHITLReviews().catch(() => MOCK_HITL_REVIEWS),
+        adminApi.stats().catch(() => INITIAL_STATS),
+        adminApi.escalations().catch(() => []),
+        adminApi.listHITLReviews().catch(() => []),
         adminApi.circuitBreakerStatus().catch(() => ({ state: "CLOSED", healthy: true })),
       ]);
       setStats(s);
@@ -71,7 +73,7 @@ export default function AdminPage() {
       setHitlReviews(h);
       setCircuitBreaker(cb);
     } catch (e) {
-      console.error("Failed to load admin data", e);
+      console.error("Failed to load clinical admin data", e);
     } finally {
       setRefreshing(false);
     }
@@ -81,8 +83,8 @@ export default function AdminPage() {
     try {
       const modifiedText = action === "modify" ? customResponse : undefined;
       await adminApi.performHITLAction(reviewId, action, modifiedText, clinicianNotes);
-      setActionSuccessMsg(`Case ${reviewId} successfully marked as ${action}d by clinician.`);
-      setTimeout(() => setActionSuccessMsg(""), 4000);
+      setActionSuccessMsg(`Case ${reviewId} successfully recorded as ${action}d by Clinical Director.`);
+      setTimeout(() => setActionSuccessMsg(""), 4500);
       setEditingReviewId(null);
       setCustomResponse("");
       setClinicianNotes("");
@@ -96,8 +98,8 @@ export default function AdminPage() {
     try {
       const res = await adminApi.resetCircuitBreaker();
       setCircuitBreaker(res.status);
-      setActionSuccessMsg("Circuit breaker successfully reset to CLOSED state.");
-      setTimeout(() => setActionSuccessMsg(""), 3000);
+      setActionSuccessMsg("Safety Circuit Breaker manually reset to CLOSED status.");
+      setTimeout(() => setActionSuccessMsg(""), 3500);
     } catch (e) {
       console.error(e);
     }
@@ -115,269 +117,680 @@ export default function AdminPage() {
   };
 
   const formatTime = (d: string) => {
-    try { return format(parseISO(d), "MMM d • h:mm a"); } catch { return d; }
+    try {
+      return format(parseISO(d), "MMM d • h:mm a");
+    } catch {
+      return d;
+    }
   };
 
-  const pendingHITLCount = hitlReviews.filter(h => h.status === "pending_clinician_review").length;
+  // --------------------------------------------------------------------------
+  // STRICT ADMIN ROLE ENFORCEMENT: ONLY prannesshkva@gmail.com
+  // --------------------------------------------------------------------------
+  if (authLoading) {
+    return (
+      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#030712" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", color: "#38BDF8" }}>
+          <Activity className="animate-spin" size={24} />
+          <span style={{ fontSize: "14px", fontWeight: 600 }}>Verifying Clinical Authority Credentials...</span>
+        </div>
+      </div>
+    );
+  }
 
-  const statCards = [
-    { label: "Pending HITL Reviews", value: pendingHITLCount, icon: Stethoscope, color: "#F43F5E", glow: "stat-card-glow-red" },
-    { label: "High Risk Alerts", value: stats.high_risk_alerts, icon: AlertTriangle, color: "#F59E0B", glow: "" },
-    { label: "Appointments Today", value: stats.appointments_today, icon: Calendar, color: "#00D4FF", glow: "stat-card-glow-cyan" },
-    { label: "AI Chats Today", value: stats.total_chats_today, icon: Bot, color: "#7C3AED", glow: "stat-card-glow-purple" },
-    { label: "Circuit Breaker", value: circuitBreaker.state || "CLOSED", icon: circuitBreaker.healthy ? ShieldCheck : ShieldAlert, color: circuitBreaker.healthy ? "#10B981" : "#F43F5E", glow: "" },
-    { label: "Tenant Context", value: "Metro Central", icon: Activity, color: "#00D4FF", glow: "" },
-  ];
+  if (!isAdmin) {
+    return (
+      <div
+        style={{
+          minHeight: "100vh",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          background: "#030712",
+          padding: "24px",
+        }}
+      >
+        <div
+          style={{
+            maxWidth: "540px",
+            width: "100%",
+            textAlign: "center",
+            background: "#0B0F19",
+            border: "1px solid #1F2937",
+            borderRadius: "16px",
+            padding: "48px 36px",
+            boxShadow: "0 20px 50px rgba(0, 0, 0, 0.6)",
+          }}
+        >
+          <div
+            style={{
+              width: 64,
+              height: 64,
+              borderRadius: "16px",
+              background: "rgba(239, 68, 68, 0.12)",
+              border: "1px solid rgba(239, 68, 68, 0.3)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              margin: "0 auto 20px",
+            }}
+          >
+            <ShieldAlert size={32} color="#EF4444" />
+          </div>
+
+          <div style={{ fontSize: "11px", fontWeight: 700, color: "#EF4444", letterSpacing: "1.2px", marginBottom: "8px", textTransform: "uppercase" }}>
+            Security Level: Restricted Access (403)
+          </div>
+          <h1 style={{ fontSize: "22px", fontWeight: 700, color: "#F8FAFC", marginBottom: "12px", letterSpacing: "-0.01em" }}>
+            Restricted Clinical Authority
+          </h1>
+          <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "28px" }}>
+            This command center governs Human-in-the-Loop emergency triage sign-offs, runtime circuit breakers, and protected clinical data. Access is strictly restricted to the Clinical Director (<code style={{ color: "#38BDF8", background: "#111827", padding: "2px 6px", borderRadius: "4px" }}>prannesshkva@gmail.com</code>).
+          </p>
+
+          <Link
+            href="/"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              gap: "8px",
+              padding: "10px 20px",
+              borderRadius: "8px",
+              background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+              color: "#FFFFFF",
+              fontSize: "13.5px",
+              fontWeight: 600,
+              textDecoration: "none",
+              boxShadow: "0 4px 14px rgba(37, 99, 235, 0.3)",
+            }}
+          >
+            Return to Patient Portal
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const pendingHITLCount = hitlReviews.filter((h) => h.status === "pending_clinician_review").length;
 
   return (
-    <div style={{ padding: "32px", maxWidth: "1240px", margin: "0 auto" }}>
-      {/* Header */}
+    <div style={{ minHeight: "100vh", background: "#030712", color: "#F8FAFC", padding: "28px 36px" }}>
+      {/* ------------------------------------------------------------- */}
+      {/* 1. Executive Clinical Command Bar                             */}
+      {/* ------------------------------------------------------------- */}
       <div
-        className="animate-fade-in-up"
-        style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "28px" }}
+        style={{
+          background: "#080D1A",
+          border: "1px solid #1E293B",
+          borderRadius: "14px",
+          padding: "18px 24px",
+          marginBottom: "24px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "0 8px 30px rgba(0, 0, 0, 0.4)",
+        }}
       >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-            <h1 style={{ fontSize: "24px", fontWeight: 700, color: "#F0F4FF", margin: 0 }}>
-              Clinical Operations &amp; HITL Oversight
-            </h1>
-            <span style={{ fontSize: "11px", padding: "2px 8px", borderRadius: "100px", background: "rgba(0, 212, 255, 0.15)", color: "#00D4FF", border: "1px solid rgba(0, 212, 255, 0.3)" }}>
-              Tenant: {stats.tenant_id} (RLS Active)
-            </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: "12px",
+              background: "linear-gradient(135deg, #0284C7 0%, #4F46E5 100%)",
+              border: "1px solid #38BDF8",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              boxShadow: "0 0 16px rgba(56, 189, 248, 0.3)",
+            }}
+          >
+            <Cpu size={22} color="#FFFFFF" strokeWidth={2.4} />
           </div>
-          <p style={{ color: "#8B9BC8", margin: "4px 0 0", fontSize: "14px" }}>
-            Multi-tenant LangGraph clinical triage management with human-in-the-loop review and runtime circuit breakers.
-          </p>
+          <div>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              <h1 style={{ fontSize: "20px", fontWeight: 800, color: "#F8FAFC", letterSpacing: "-0.015em", margin: 0 }}>
+                MediFlow Clinical Command Center
+              </h1>
+              <span
+                style={{
+                  fontSize: "10px",
+                  padding: "2px 8px",
+                  borderRadius: "5px",
+                  background: "rgba(56, 189, 248, 0.15)",
+                  color: "#38BDF8",
+                  fontWeight: 700,
+                  border: "1px solid rgba(56, 189, 248, 0.3)",
+                  letterSpacing: "0.8px",
+                }}
+              >
+                LEVEL 4 OVERSIGHT
+              </span>
+            </div>
+            <div style={{ fontSize: "12.5px", color: "#94A3B8", marginTop: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
+              <span>Director: <strong style={{ color: "#E2E8F0" }}>prannesshkva@gmail.com</strong></span>
+              <span style={{ color: "#475569" }}>•</span>
+              <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#10B981", fontWeight: 600 }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981" }} />
+                Real-Time Telemetry Active
+              </span>
+            </div>
+          </div>
         </div>
-        <div style={{ display: "flex", gap: "10px" }}>
-          {circuitBreaker.state === "OPEN" && (
-            <button className="btn-danger" onClick={handleResetCircuitBreaker} style={{ display: "flex", alignItems: "center", gap: "6px", fontSize: "12px" }}>
-              <ShieldAlert size={14} /> Reset Circuit Breaker
-            </button>
-          )}
-          <button className="btn-ghost" onClick={loadData} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-            <RefreshCw size={14} style={{ animation: refreshing ? "spin 1s linear infinite" : "none" }} />
-            Refresh
+
+        {/* Right Status Actions */}
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div
+            style={{
+              padding: "6px 14px",
+              borderRadius: "8px",
+              background: circuitBreaker.healthy ? "rgba(16, 185, 129, 0.12)" : "rgba(239, 68, 68, 0.15)",
+              border: circuitBreaker.healthy ? "1px solid rgba(16, 185, 129, 0.3)" : "1px solid rgba(239, 68, 68, 0.4)",
+              fontSize: "12px",
+              fontWeight: 700,
+              color: circuitBreaker.healthy ? "#34D399" : "#F87171",
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+            }}
+          >
+            {circuitBreaker.healthy ? <ShieldCheck size={14} /> : <ShieldAlert size={14} />}
+            <span>CIRCUIT BREAKER: {circuitBreaker.state || "CLOSED"}</span>
+          </div>
+
+          <button
+            onClick={loadData}
+            disabled={refreshing}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "7px 14px",
+              borderRadius: "8px",
+              background: "#111827",
+              border: "1px solid #1F2937",
+              color: "#CBD5E1",
+              fontSize: "12px",
+              fontWeight: 600,
+              cursor: "pointer",
+            }}
+          >
+            <RefreshCw size={13} className={refreshing ? "animate-spin" : ""} />
+            <span>Sync</span>
           </button>
         </div>
       </div>
 
       {actionSuccessMsg && (
-        <div style={{ background: "rgba(16, 185, 129, 0.15)", border: "1px solid rgba(16, 185, 129, 0.3)", color: "#10B981", padding: "12px 16px", borderRadius: "10px", marginBottom: "20px", fontSize: "13.5px", display: "flex", alignItems: "center", gap: "8px" }}>
-          <CheckCircle size={16} />
-          {actionSuccessMsg}
+        <div
+          style={{
+            padding: "12px 18px",
+            borderRadius: "10px",
+            marginBottom: "20px",
+            background: "rgba(16, 185, 129, 0.15)",
+            border: "1px solid rgba(16, 185, 129, 0.35)",
+            display: "flex",
+            alignItems: "center",
+            gap: "10px",
+            color: "#6EE7B7",
+            fontSize: "13.5px",
+            fontWeight: 500,
+          }}
+        >
+          <CheckCircle size={16} color="#10B981" />
+          <span>{actionSuccessMsg}</span>
         </div>
       )}
 
-      {/* Stats Cards */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "14px", marginBottom: "28px" }}>
-        {statCards.map((card, i) => (
-          <div
-            key={i}
-            className={`glass-card animate-fade-in-up ${card.glow}`}
-            style={{ padding: "18px", animationDelay: `${i * 0.05}s` }}
-          >
-            <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-              <div style={{
-                width: 42, height: 42, borderRadius: "12px",
-                background: `${card.color}15`,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <card.icon size={20} color={card.color} />
-              </div>
-              <div>
-                <div style={{ fontSize: typeof card.value === "string" ? "18px" : "24px", fontWeight: 800, color: "#F0F4FF", lineHeight: 1 }}>
-                  {card.value}
-                </div>
-                <div style={{ fontSize: "12px", color: "#8B9BC8", marginTop: "4px" }}>{card.label}</div>
-              </div>
-            </div>
+      {/* ------------------------------------------------------------- */}
+      {/* 2. Command Telemetry Deck (Key Metrics)                       */}
+      {/* ------------------------------------------------------------- */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
+          gap: "16px",
+          marginBottom: "24px",
+        }}
+      >
+        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+            <span>HITL Review Queue</span>
+            <Stethoscope size={16} color="#F43F5E" />
           </div>
-        ))}
+          <div style={{ fontSize: "28px", fontWeight: 800, color: pendingHITLCount > 0 ? "#F87171" : "#F8FAFC", marginTop: "8px" }}>
+            {pendingHITLCount}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+            Cases suspended pending clinician sign-off
+          </div>
+        </div>
+
+        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+            <span>Clinical Escalations</span>
+            <AlertTriangle size={16} color="#F59E0B" />
+          </div>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "#F8FAFC", marginTop: "8px" }}>
+            {escalations.length}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+            Acute risk alerts logged
+          </div>
+        </div>
+
+        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+            <span>Safety Circuit Breaker</span>
+            <ShieldCheck size={16} color="#10B981" />
+          </div>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "#34D399", marginTop: "8px" }}>
+            {circuitBreaker.state || "CLOSED"}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+            Failures: {circuitBreaker.failure_count || 0} / Threshold: {circuitBreaker.failure_threshold || 3}
+          </div>
+        </div>
+
+        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "18px 20px" }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", color: "#94A3B8", fontSize: "12px", fontWeight: 600, textTransform: "uppercase" }}>
+            <span>Consultations Today</span>
+            <Bot size={16} color="#38BDF8" />
+          </div>
+          <div style={{ fontSize: "28px", fontWeight: 800, color: "#F8FAFC", marginTop: "8px" }}>
+            {stats.total_chats_today || 0}
+          </div>
+          <div style={{ fontSize: "11.5px", color: "#64748B", marginTop: "4px" }}>
+            Deterministic state partitioned runs
+          </div>
+        </div>
       </div>
 
-      {/* Main Grid: HITL Oversight Queue & Escalations */}
-      <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr", gap: "22px" }}>
-        {/* Left Column: Human-in-the-Loop Review Queue */}
-        <div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "14px" }}>
-            <h2 style={{ fontSize: "15px", fontWeight: 600, color: "#F0F4FF", margin: 0, display: "flex", alignItems: "center", gap: "8px" }}>
-              <Stethoscope size={16} color="#00D4FF" />
-              Human-in-the-Loop (HITL) Oversight Queue
-            </h2>
-            <span className="badge badge-high" style={{ animation: pendingHITLCount > 0 ? "pulse 2s infinite" : "none" }}>
-              {pendingHITLCount} awaiting clinician sign-off
+      {/* ------------------------------------------------------------- */}
+      {/* 3. Navigation Tabs                                            */}
+      {/* ------------------------------------------------------------- */}
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          borderBottom: "1px solid #1E293B",
+          paddingBottom: "12px",
+          marginBottom: "24px",
+        }}
+      >
+        <button
+          onClick={() => setActiveTab("hitl")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            background: activeTab === "hitl" ? "#1E293B" : "transparent",
+            color: activeTab === "hitl" ? "#38BDF8" : "#94A3B8",
+            border: activeTab === "hitl" ? "1px solid #38BDF8" : "1px solid transparent",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <Stethoscope size={15} />
+          <span>HITL Physician Review Queue</span>
+          {pendingHITLCount > 0 && (
+            <span style={{ fontSize: "10px", padding: "1px 6px", borderRadius: "10px", background: "#EF4444", color: "#FFFFFF", fontWeight: 700 }}>
+              {pendingHITLCount}
             </span>
-          </div>
+          )}
+        </button>
 
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {hitlReviews.length === 0 ? (
-              <div className="glass-card" style={{ padding: "24px", textAlign: "center", color: "#8B9BC8" }}>
-                <CheckCircle size={28} color="#10B981" style={{ margin: "0 auto 8px" }} />
-                No pending clinical reviews. All high-risk cases have been verified.
-              </div>
-            ) : (
-              hitlReviews.map((h) => (
-                <div
-                  key={h.id}
-                  className="glass-card animate-fade-in"
-                  style={{
-                    padding: "18px",
-                    borderLeft: h.status === "pending_clinician_review" ? "3px solid #F43F5E" : "3px solid #10B981",
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "8px" }}>
-                    <div>
-                      <span style={{ fontSize: "15px", fontWeight: 700, color: "#F0F4FF", marginRight: "8px" }}>
-                        {h.patient_name}
-                      </span>
-                      <span className={`badge badge-${h.risk_level === "HIGH" ? "high" : "medium"}`}>
-                        {h.risk_level} Risk
-                      </span>
-                    </div>
-                    <span style={{
-                      fontSize: "11px", padding: "2px 8px", borderRadius: "100px",
-                      background: h.status === "pending_clinician_review" ? "rgba(244,63,94,0.15)" : "rgba(16,185,129,0.15)",
-                      color: h.status === "pending_clinician_review" ? "#F43F5E" : "#10B981",
-                      fontWeight: 600,
-                    }}>
-                      {h.status === "pending_clinician_review" ? "SUSPENDED (Needs Review)" : "CLINICIAN SIGNED"}
+        <button
+          onClick={() => setActiveTab("escalations")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            background: activeTab === "escalations" ? "#1E293B" : "transparent",
+            color: activeTab === "escalations" ? "#38BDF8" : "#94A3B8",
+            border: activeTab === "escalations" ? "1px solid #38BDF8" : "1px solid transparent",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <AlertTriangle size={15} />
+          <span>Clinical Escalation Ledger</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("circuit")}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            padding: "8px 16px",
+            borderRadius: "8px",
+            background: activeTab === "circuit" ? "#1E293B" : "transparent",
+            color: activeTab === "circuit" ? "#38BDF8" : "#94A3B8",
+            border: activeTab === "circuit" ? "1px solid #38BDF8" : "1px solid transparent",
+            fontSize: "13px",
+            fontWeight: 600,
+            cursor: "pointer",
+          }}
+        >
+          <ShieldCheck size={15} />
+          <span>Safety Circuit Breaker Console</span>
+        </button>
+      </div>
+
+      {/* ------------------------------------------------------------- */}
+      {/* 4. Tab 1: HITL Physician Review Queue                         */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === "hitl" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+          {hitlReviews.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "64px 20px", background: "#0B101D", borderRadius: "12px", border: "1px solid #1E293B" }}>
+              <ShieldCheck size={44} color="#10B981" style={{ margin: "0 auto 12px", opacity: 0.8 }} />
+              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#F8FAFC" }}>HITL Oversight Queue Clear</h3>
+              <p style={{ color: "#94A3B8", fontSize: "13px", maxWidth: "480px", margin: "6px auto 0" }}>
+                All current patient triage interactions are operating within safe clinical bounds. High-risk symptoms or red-line emergencies will immediately trigger suspension here for physician sign-off.
+              </p>
+            </div>
+          ) : (
+            hitlReviews.map((item) => (
+              <div
+                key={item.id}
+                style={{
+                  background: "#0B101D",
+                  border: item.status === "pending_clinician_review" ? "1px solid rgba(239, 68, 68, 0.4)" : "1px solid #1E293B",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                  boxShadow: item.status === "pending_clinician_review" ? "0 4px 20px rgba(239, 68, 68, 0.15)" : "none",
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 700, color: "#F8FAFC" }}>
+                      Patient: {item.patient_name}
+                    </span>
+                    <span
+                      style={{
+                        fontSize: "11px",
+                        padding: "2px 8px",
+                        borderRadius: "6px",
+                        background: "rgba(239, 68, 68, 0.15)",
+                        color: "#F87171",
+                        border: "1px solid rgba(239, 68, 68, 0.3)",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {item.risk_level} RISK
+                    </span>
+                    <span style={{ fontSize: "11.5px", color: "#64748B" }}>
+                      {formatTime(item.created_at)}
                     </span>
                   </div>
 
-                  <p style={{ fontSize: "13px", color: "#8B9BC8", margin: "0 0 6px" }}>
-                    <strong>Trigger:</strong> {h.risk_reason}
-                  </p>
-                  <p style={{ fontSize: "12.5px", color: "#E2E8F0", margin: "0 0 10px", background: "rgba(0,0,0,0.25)", padding: "8px 10px", borderRadius: "6px" }}>
-                    <em>"{h.query}"</em>
-                  </p>
-
-                  <div style={{ background: "rgba(0, 212, 255, 0.05)", border: "1px solid rgba(0, 212, 255, 0.15)", borderRadius: "8px", padding: "10px", marginBottom: "12px" }}>
-                    <div style={{ fontSize: "11.5px", fontWeight: 600, color: "#00D4FF", marginBottom: "4px" }}>
-                      Proposed AI Triage Draft:
-                    </div>
-                    <div style={{ fontSize: "12px", color: "#CBD5E1", lineHeight: 1.4 }}>
-                      {h.final_response || h.proposed_response}
-                    </div>
-                  </div>
-
-                  {editingReviewId === h.id ? (
-                    <div style={{ marginTop: "10px", background: "rgba(0,0,0,0.3)", padding: "12px", borderRadius: "8px" }}>
-                      <label style={{ fontSize: "12px", color: "#8B9BC8", display: "block", marginBottom: "4px" }}>
-                        Amend Clinical Triage Response:
-                      </label>
-                      <textarea
-                        style={{ width: "100%", minHeight: "80px", background: "#0A0F1E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", color: "#F0F4FF", padding: "8px", fontSize: "12.5px", marginBottom: "8px" }}
-                        value={customResponse}
-                        onChange={(e) => setCustomResponse(e.target.value)}
-                      />
-                      <input
-                        type="text"
-                        placeholder="Clinician notes / rationale (optional)..."
-                        style={{ width: "100%", background: "#0A0F1E", border: "1px solid rgba(255,255,255,0.15)", borderRadius: "6px", color: "#F0F4FF", padding: "6px 8px", fontSize: "12px", marginBottom: "10px" }}
-                        value={clinicianNotes}
-                        onChange={(e) => setClinicianNotes(e.target.value)}
-                      />
-                      <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
-                        <button className="btn-ghost" style={{ fontSize: "12px" }} onClick={() => setEditingReviewId(null)}>
-                          Cancel
-                        </button>
-                        <button className="btn-success" style={{ fontSize: "12px" }} onClick={() => handleHITLAction(h.id, "modify")}>
-                          <Send size={12} /> Sign Off &amp; Release
-                        </button>
-                      </div>
-                    </div>
-                  ) : (
-                    h.status === "pending_clinician_review" && (
-                      <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                        <button
-                          className="btn-success"
-                          style={{ fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
-                          onClick={() => handleHITLAction(h.id, "approve")}
-                        >
-                          <CheckCircle size={13} /> Approve Draft
-                        </button>
-                        <button
-                          className="btn-ghost"
-                          style={{ fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
-                          onClick={() => {
-                            setEditingReviewId(h.id);
-                            setCustomResponse(h.proposed_response);
-                          }}
-                        >
-                          <Edit3 size={13} /> Modify &amp; Sign
-                        </button>
-                        <button
-                          className="btn-danger"
-                          style={{ fontSize: "12px", display: "flex", alignItems: "center", gap: "5px" }}
-                          onClick={() => handleHITLAction(h.id, "reject")}
-                        >
-                          <XCircle size={13} /> Escalate to In-Person ER
-                        </button>
-                      </div>
-                    )
-                  )}
+                  <span
+                    style={{
+                      fontSize: "11px",
+                      padding: "3px 10px",
+                      borderRadius: "6px",
+                      background: item.status === "pending_clinician_review" ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                      color: item.status === "pending_clinician_review" ? "#FBBF24" : "#34D399",
+                      fontWeight: 600,
+                    }}
+                  >
+                    {item.status.replace(/_/g, " ").toUpperCase()}
+                  </span>
                 </div>
-              ))
-            )}
-          </div>
-        </div>
 
-        {/* Right Column: Escalation Tickets & Performance Metrics */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "18px" }}>
-          <div className="glass-card-static" style={{ padding: "18px" }}>
-            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#F0F4FF", margin: "0 0 14px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <AlertTriangle size={15} color="#F59E0B" /> Escalation Tracking
-            </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-              {escalations.slice(0, 4).map((esc) => (
-                <div key={esc.id} style={{ borderBottom: "1px solid rgba(255,255,255,0.06)", paddingBottom: "8px" }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "4px" }}>
-                    <span style={{ fontSize: "13px", fontWeight: 600, color: "#F0F4FF" }}>{esc.patient_name}</span>
-                    <span className={`badge badge-${esc.risk_level === "HIGH" ? "high" : "medium"}`}>{esc.risk_level}</span>
+                <div style={{ marginBottom: "14px" }}>
+                  <div style={{ fontSize: "12px", color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}>PATIENT QUERY:</div>
+                  <div style={{ background: "#0F172A", padding: "10px 14px", borderRadius: "8px", fontSize: "13.5px", color: "#E2E8F0" }}>
+                    &ldquo;{item.query}&rdquo;
                   </div>
-                  <div style={{ fontSize: "12px", color: "#8B9BC8" }}>{esc.issue}</div>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginTop: "6px" }}>
-                    <span style={{ fontSize: "11px", color: "#4A5680" }}>{formatTime(esc.created_at)}</span>
-                    {esc.status !== "resolved" && (
-                      <button className="btn-ghost" style={{ fontSize: "10px", padding: "2px 6px" }} onClick={() => updateEscalation(esc.id, "resolved")}>
-                        Resolve
+                </div>
+
+                <div style={{ marginBottom: "16px" }}>
+                  <div style={{ fontSize: "12px", color: "#94A3B8", fontWeight: 600, marginBottom: "4px" }}>PROPOSED CLINICAL DRAFT:</div>
+                  <div style={{ background: "#080D1A", padding: "12px 14px", borderRadius: "8px", fontSize: "13px", color: "#CBD5E1", border: "1px solid #1E293B", whiteSpace: "pre-wrap" }}>
+                    {item.final_response || item.proposed_response}
+                  </div>
+                </div>
+
+                {item.status === "pending_clinician_review" && (
+                  <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
+                    <button
+                      onClick={() => handleHITLAction(item.id, "approve")}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        background: "linear-gradient(135deg, #10B981 0%, #059669 100%)",
+                        border: "none",
+                        color: "#FFFFFF",
+                        fontSize: "12.5px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✓ Approve &amp; Release to Patient
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        setEditingReviewId(item.id);
+                        setCustomResponse(item.proposed_response);
+                      }}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        background: "#1E293B",
+                        border: "1px solid #334155",
+                        color: "#38BDF8",
+                        fontSize: "12.5px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✎ Modify Response Draft
+                    </button>
+
+                    <button
+                      onClick={() => handleHITLAction(item.id, "reject")}
+                      style={{
+                        padding: "8px 16px",
+                        borderRadius: "8px",
+                        background: "rgba(239, 68, 68, 0.15)",
+                        border: "1px solid rgba(239, 68, 68, 0.3)",
+                        color: "#F87171",
+                        fontSize: "12.5px",
+                        fontWeight: 600,
+                        cursor: "pointer",
+                      }}
+                    >
+                      ✕ Reject &amp; Suspend Triage
+                    </button>
+                  </div>
+                )}
+
+                {editingReviewId === item.id && (
+                  <div style={{ marginTop: "16px", paddingTop: "14px", borderTop: "1px solid #1E293B" }}>
+                    <label style={{ fontSize: "12px", color: "#38BDF8", fontWeight: 600, display: "block", marginBottom: "6px" }}>
+                      Physician Modified Response:
+                    </label>
+                    <textarea
+                      value={customResponse}
+                      onChange={(e) => setCustomResponse(e.target.value)}
+                      rows={3}
+                      style={{
+                        width: "100%",
+                        background: "#080D1A",
+                        border: "1px solid #38BDF8",
+                        borderRadius: "8px",
+                        padding: "10px 12px",
+                        color: "#F8FAFC",
+                        fontSize: "13px",
+                        marginBottom: "10px",
+                        outline: "none",
+                      }}
+                    />
+                    <div style={{ display: "flex", gap: "8px" }}>
+                      <button
+                        onClick={() => handleHITLAction(item.id, "modify")}
+                        style={{
+                          padding: "7px 14px",
+                          borderRadius: "6px",
+                          background: "#0284C7",
+                          color: "#FFF",
+                          border: "none",
+                          fontSize: "12px",
+                          fontWeight: 600,
+                          cursor: "pointer",
+                        }}
+                      >
+                        Submit Physician Modification
                       </button>
-                    )}
+                      <button
+                        onClick={() => setEditingReviewId(null)}
+                        style={{
+                          padding: "7px 14px",
+                          borderRadius: "6px",
+                          background: "#1E293B",
+                          color: "#94A3B8",
+                          border: "none",
+                          fontSize: "12px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        Cancel
+                      </button>
+                    </div>
                   </div>
+                )}
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 5. Tab 2: Clinical Risk & Escalations                         */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === "escalations" && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {escalations.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "64px 20px", background: "#0B101D", borderRadius: "12px", border: "1px solid #1E293B" }}>
+              <ShieldCheck size={44} color="#10B981" style={{ margin: "0 auto 12px", opacity: 0.8 }} />
+              <h3 style={{ fontSize: "16px", fontWeight: 700, color: "#F8FAFC" }}>No Active Risk Escalations</h3>
+              <p style={{ color: "#94A3B8", fontSize: "13px" }}>Zero critical triage emergencies currently unresolved.</p>
+            </div>
+          ) : (
+            escalations.map((esc) => (
+              <div
+                key={esc.id}
+                style={{
+                  background: "#0B101D",
+                  border: "1px solid #1E293B",
+                  borderRadius: "10px",
+                  padding: "16px 20px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                }}
+              >
+                <div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "14px", fontWeight: 700, color: "#F8FAFC" }}>{esc.patient_name}</span>
+                    <span
+                      style={{
+                        fontSize: "10.5px",
+                        padding: "2px 7px",
+                        borderRadius: "5px",
+                        background: "rgba(239, 68, 68, 0.15)",
+                        color: "#F87171",
+                        fontWeight: 700,
+                      }}
+                    >
+                      {esc.risk_level}
+                    </span>
+                    <span style={{ fontSize: "11px", color: "#64748B" }}>{formatTime(esc.created_at)}</span>
+                  </div>
+                  <div style={{ fontSize: "13px", color: "#CBD5E1" }}>{esc.issue}</div>
                 </div>
-              ))}
+
+                <select
+                  value={esc.status}
+                  onChange={(e) => updateEscalation(esc.id, e.target.value)}
+                  style={{
+                    background: "#1E293B",
+                    color: "#F8FAFC",
+                    border: "1px solid #334155",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
+                    cursor: "pointer",
+                  }}
+                >
+                  <option value="open">Open</option>
+                  <option value="reviewed">Reviewed</option>
+                  <option value="resolved">Resolved</option>
+                </select>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 6. Tab 3: Safety Circuit Breaker Console                      */}
+      {/* ------------------------------------------------------------- */}
+      {activeTab === "circuit" && (
+        <div style={{ background: "#0B101D", border: "1px solid #1E293B", borderRadius: "12px", padding: "28px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
+            <div>
+              <h2 style={{ fontSize: "17px", fontWeight: 700, color: "#F8FAFC", margin: 0 }}>
+                Runtime Safety Circuit Breaker Architecture
+              </h2>
+              <p style={{ color: "#94A3B8", fontSize: "13px", marginTop: "4px" }}>
+                Automatic fail-safe isolation preventing corrupted or hallucinated clinical model output during API anomalies.
+              </p>
+            </div>
+            <button
+              onClick={handleResetCircuitBreaker}
+              style={{
+                padding: "8px 16px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+                border: "none",
+                color: "#FFFFFF",
+                fontSize: "12.5px",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Force Reset Circuit Breaker
+            </button>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginTop: "16px" }}>
+            <div style={{ background: "#080D1A", padding: "16px", borderRadius: "8px", border: "1px solid #1E293B" }}>
+              <div style={{ fontSize: "12px", color: "#64748B", textTransform: "uppercase", fontWeight: 700 }}>Breaker State</div>
+              <div style={{ fontSize: "20px", fontWeight: 800, color: circuitBreaker.healthy ? "#34D399" : "#F87171", marginTop: "4px" }}>
+                {circuitBreaker.state || "CLOSED"}
+              </div>
+            </div>
+
+            <div style={{ background: "#080D1A", padding: "16px", borderRadius: "8px", border: "1px solid #1E293B" }}>
+              <div style={{ fontSize: "12px", color: "#64748B", textTransform: "uppercase", fontWeight: 700 }}>Failure Threshold</div>
+              <div style={{ fontSize: "20px", fontWeight: 800, color: "#F8FAFC", marginTop: "4px" }}>
+                {circuitBreaker.failure_threshold || 3} Consecutive Errors
+              </div>
             </div>
           </div>
-
-          <div className="glass-card-static" style={{ padding: "18px" }}>
-            <h3 style={{ fontSize: "14px", fontWeight: 600, color: "#F0F4FF", margin: "0 0 12px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <TrendingUp size={14} color="#8B9BC8" /> Safety &amp; Circuit Telemetry
-            </h3>
-            {[
-              { label: "HITL Triage Compliance", value: 100, color: "#10B981" },
-              { label: "Circuit Breaker State", value: circuitBreaker.healthy ? 100 : 20, display: circuitBreaker.state, color: circuitBreaker.healthy ? "#10B981" : "#F43F5E" },
-              { label: "Contraindication Screening", value: 100, display: "Active", color: "#00D4FF" },
-              { label: "Tenant Data Isolation", value: 100, display: "RLS Enforced", color: "#7C3AED" },
-            ].map((item, i) => (
-              <div key={i} style={{ marginBottom: "10px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                  <span style={{ fontSize: "12px", color: "#8B9BC8" }}>{item.label}</span>
-                  <span style={{ fontSize: "12px", fontWeight: 600, color: item.color }}>{item.display || `${item.value}%`}</span>
-                </div>
-                <div style={{ height: 4, background: "rgba(255,255,255,0.06)", borderRadius: 2 }}>
-                  <div style={{
-                    height: "100%", width: `${item.value}%`, borderRadius: 2,
-                    background: `linear-gradient(90deg, ${item.color}80, ${item.color})`,
-                  }} />
-                </div>
-              </div>
-            ))}
-          </div>
         </div>
-      </div>
-
-      <style>{`@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }`}</style>
+      )}
     </div>
   );
 }

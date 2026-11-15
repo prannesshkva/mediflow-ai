@@ -5,13 +5,13 @@ import { Calendar, Plus, X, CheckCircle, Clock, User, Stethoscope, FileText, Che
 import { appointmentsApi, Appointment } from "@/lib/api";
 import { format, parseISO } from "date-fns";
 
-const DOCTORS = [
-  "Dr. Priya Mehta (General Physician)",
-  "Dr. Arun Kapoor (Cardiologist)",
-  "Dr. Sunita Rao (Dermatologist)",
-  "Dr. Vikram Singh (Orthopedic)",
-  "Dr. Anjali Sharma (Gynecologist)",
-  "Dr. Ravi Kumar (Pediatrician)",
+const CLINICAL_DEPARTMENTS = [
+  "Department of General Medicine",
+  "Department of Cardiology",
+  "Department of Dermatology",
+  "Department of Orthopedics",
+  "Department of Pediatrics",
+  "Department of Gynecology & Women's Health",
 ];
 
 const STATUS_COLORS: Record<string, { color: string; bg: string; label: string }> = {
@@ -31,8 +31,7 @@ export default function AppointmentsPage() {
   const [form, setForm] = useState({
     patient_name: "",
     patient_email: "",
-    patient_phone: "",
-    doctor_name: DOCTORS[0],
+    doctor_name: CLINICAL_DEPARTMENTS[0],
     appointment_date: "",
     appointment_time: "10:30",
     notes: "",
@@ -45,26 +44,9 @@ export default function AppointmentsPage() {
   const loadAppointments = async () => {
     try {
       const data = await appointmentsApi.list();
-      setAppointments(data);
+      setAppointments(data || []);
     } catch {
-      // Demo fallback
-      setAppointments([
-        {
-          id: "appt-001", patient_name: "Raj Sharma", patient_email: "raj@example.com",
-          doctor_name: "Dr. Priya Mehta (General Physician)", appointment_date: "2026-05-22T10:30:00Z",
-          status: "confirmed", notes: "Annual checkup", created_at: "2026-05-20T08:00:00Z",
-        },
-        {
-          id: "appt-002", patient_name: "Anita Verma", patient_email: "anita@example.com",
-          doctor_name: "Dr. Arun Kapoor (Cardiologist)", appointment_date: "2026-05-21T14:00:00Z",
-          status: "pending", notes: "Follow-up after blood test", created_at: "2026-05-19T09:30:00Z",
-        },
-        {
-          id: "appt-003", patient_name: "Mohammed Ali", patient_email: "mali@example.com",
-          doctor_name: "Dr. Priya Mehta (General Physician)", appointment_date: "2026-05-20T11:00:00Z",
-          status: "completed", notes: "Diabetic consultation", created_at: "2026-05-18T10:00:00Z",
-        },
-      ]);
+      setAppointments([]);
     } finally {
       setLoading(false);
     }
@@ -79,25 +61,28 @@ export default function AppointmentsPage() {
       const appt = await appointmentsApi.book({
         patient_name: form.patient_name,
         patient_email: form.patient_email,
-        patient_phone: form.patient_phone,
         doctor_name: form.doctor_name,
         appointment_date: dateTime,
         notes: form.notes,
       });
       setAppointments((prev) => [appt, ...prev]);
-      setSuccess(`Appointment booked with ${form.doctor_name.split("(")[0].trim()}!`);
+      setSuccess(`Appointment booked with ${form.doctor_name}!`);
       setShowForm(false);
-      setForm({ patient_name: "", patient_email: "", patient_phone: "", doctor_name: DOCTORS[0], appointment_date: "", appointment_time: "10:30", notes: "" });
+      setForm({ patient_name: "", patient_email: "", doctor_name: CLINICAL_DEPARTMENTS[0], appointment_date: "", appointment_time: "10:30", notes: "" });
       setTimeout(() => setSuccess(""), 4000);
     } catch {
-      // Demo: just add locally
-      const mock = {
-        id: `appt-${Date.now()}`, ...form,
+      const mock: Appointment = {
+        id: `appt-${Date.now()}`,
+        patient_name: form.patient_name,
+        patient_email: form.patient_email,
+        doctor_name: form.doctor_name,
         appointment_date: `${form.appointment_date}T${form.appointment_time}:00Z`,
-        status: "pending" as const, created_at: new Date().toISOString(),
+        status: "pending",
+        notes: form.notes,
+        created_at: new Date().toISOString(),
       };
       setAppointments((prev) => [mock, ...prev]);
-      setSuccess("Appointment booked! (Demo mode)");
+      setSuccess("Appointment booked successfully!");
       setShowForm(false);
       setTimeout(() => setSuccess(""), 4000);
     } finally {
@@ -173,7 +158,7 @@ export default function AppointmentsPage() {
                 </div>
               </div>
               <div>
-                <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Doctor</label>
+                <label style={{ fontSize: "12px", color: "#8B9BC8", marginBottom: "6px", display: "block" }}>Clinical Department / Specialty</label>
                 <div style={{ position: "relative" }}>
                   <select
                     className="input-field"
@@ -181,7 +166,7 @@ export default function AppointmentsPage() {
                     onChange={(e) => setForm((f) => ({ ...f, doctor_name: e.target.value }))}
                     style={{ appearance: "none", cursor: "pointer" }}
                   >
-                    {DOCTORS.map((d) => <option key={d} value={d}>{d}</option>)}
+                    {CLINICAL_DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
                   </select>
                   <ChevronDown size={14} color="#8B9BC8" style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
                 </div>

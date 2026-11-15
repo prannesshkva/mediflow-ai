@@ -51,11 +51,11 @@ const STORAGE_SESSIONS_KEY = "mediflow_chat_sessions_v3";
 const STORAGE_MESSAGES_KEY = "mediflow_chat_messages_map_v3";
 
 const SUGGESTED_QUERIES = [
-  "I want to book an appointment with Dr. Priya Mehta tomorrow",
-  "What are the clinic timings and emergency contact?",
+  "I want to schedule a general health consultation tomorrow",
+  "What are the clinic operating hours and emergency protocols?",
   "I have severe chest pain and radiating arm numbness",
-  "How do I get my recent lab test results?",
-  "What insurance plans and TPAs do you accept?",
+  "How do I access my recent laboratory test reports?",
+  "What insurance plans and health coverages do you support?",
   "Can I reschedule my appointment to next Monday?",
 ];
 
