@@ -120,6 +120,55 @@ def _template_response(query: str, intent: str, context: List[str], appointment_
     base = template_fn(context, query)
     return (appt_block + base).strip() if appt_block else base
 
+def _groq_response(
+    query: str,
+    intent: str,
+    context: List[str],
+    risk_level: str,
+    appointment_data: Optional[Dict],
+) -> str:
+    try:
+        from groq import Groq
+        api_key = os.environ.get("GROQ_API_KEY", "")
+        model_name = os.environ.get("GROQ_MODEL", "openai/gpt-oss-120b")
+        client = Groq(api_key=api_key)
+
+        appt_info = ""
+        if appointment_data:
+            appt_info = f"\nAppointment Action Taken: {appointment_data}\n"
+
+        prompt = f"""You are MediFlow AI, a clinical operations and patient triage assistant.
+
+Patient Query: "{query}"
+Intent: {intent}
+Risk Level: {risk_level}
+{appt_info}
+
+Relevant Clinic & Medical Information:
+{chr(10).join(f'- {c}' for c in context)}
+
+Generate a helpful, empathetic, patient-friendly response in clean markdown.
+- Be warm and professional
+- Use bullet points and clear formatting where helpful
+- Do NOT give ungrounded medical diagnoses
+- Keep response concise but medically complete
+- If appointment was booked or referenced, include key confirmation details."""
+
+        completion = client.chat.completions.create(
+            model=model_name,
+            messages=[
+                {"role": "system", "content": "You are MediFlow AI, an evidence-grounded clinical operations assistant."},
+                {"role": "user", "content": prompt},
+            ],
+            temperature=0.2,
+            max_tokens=600,
+        )
+        return completion.choices[0].message.content.strip()
+    except Exception as e:
+        if os.getenv("GEMINI_API_KEY"):
+            return _gemini_response(query, intent, context, risk_level, appointment_data)
+        return _template_response(query, intent, context, appointment_data)
+
 def _gemini_response(
     query: str,
     intent: str,
@@ -168,8 +217,9 @@ def run_response_agent(
 
     start = time.time()
 
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    if api_key:
+    if os.getenv("GROQ_API_KEY"):
+        response = _groq_response(query, intent, context, risk_level, appointment_data)
+    elif os.getenv("GEMINI_API_KEY"):
         response = _gemini_response(query, intent, context, risk_level, appointment_data)
     else:
         time.sleep(random.uniform(0.10, 0.25))
