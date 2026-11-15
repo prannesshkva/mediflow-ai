@@ -17,28 +17,24 @@ def _format_appointment_response(appointment_data: Dict) -> str:
             formatted_date = dt.strftime("%A, %B %d, %Y at %I:%M %p")
         except Exception:
             formatted_date = date_str
-        return f"""
-✅ **Appointment Confirmed!**
+        return f"""### 📅 Appointment Confirmed
 
-| Detail | Info |
-|--------|------|
+| Detail | Information |
+| :--- | :--- |
 | **Doctor** | {appointment_data.get('doctor', 'TBD')} |
 | **Date & Time** | {formatted_date} |
 | **Status** | Pending Confirmation |
 | **Reference ID** | `{appointment_data.get('appointment_id', 'N/A')}` |
 
-**Please bring:**
-- Valid photo ID
-- Insurance card
-- Previous medical records / test reports
-- List of current medications
-
-Arrive **15 minutes early** for registration. You will receive a confirmation SMS shortly.
+**Important Instructions:**
+* Arrive **15 minutes early** for registration.
+* Bring valid photo ID and insurance card.
+* Bring previous medical records and current medications list.
 """
     elif action == "cancel_requested":
-        return "\n📋 **Cancellation Request Received**\n\nPlease call **+91-9876543210** or visit the clinic to confirm your cancellation. Cancellations must be made 24 hours in advance."
+        return "\n📋 **Cancellation Request Received**\n\nPlease call **+91-9876543210** or visit the clinic to confirm your cancellation. Cancellations must be made 24 hours in advance.\n"
     elif action == "reschedule_requested":
-        return "\n📅 **Reschedule Request**\n\nPlease call **+91-9876543210** to reschedule your appointment. Our team will find the next available slot for you."
+        return "\n📅 **Reschedule Request**\n\nPlease call **+91-9876543210** to reschedule your appointment. Our team will find the next available slot for you.\n"
     return ""
 
 _TEMPLATE_RESPONSES = {
@@ -118,7 +114,9 @@ def _template_response(query: str, intent: str, context: List[str], appointment_
     appt_block = _format_appointment_response(appointment_data) if appointment_data else ""
     template_fn = _TEMPLATE_RESPONSES.get(intent, _TEMPLATE_RESPONSES["general_inquiry"])
     base = template_fn(context, query)
-    return (appt_block + base).strip() if appt_block else base
+    if appt_block and base:
+        return f"{appt_block.strip()}\n\n---\n\n{base.strip()}"
+    return appt_block.strip() if appt_block else base.strip()
 
 def _groq_response(
     query: str,

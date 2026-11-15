@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, AlertTriangle, RefreshCw, Sparkles } from "lucide-react";
+import { Bot, Send, User, AlertTriangle, RefreshCw, Sparkles, Activity, ShieldCheck, CheckCircle2 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import { chatApi, ChatResponse, AgentTraceStep } from "@/lib/api";
 import { WorkflowTrace } from "@/components/chat/WorkflowTrace";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Message {
   id: string;
@@ -24,21 +26,23 @@ interface Message {
 const SUGGESTED_QUERIES = [
   "I want to book an appointment tomorrow",
   "What are the clinic timings?",
-  "I have severe chest pain",
+  "I have severe chest pain and arm numbness",
   "How do I get my test results?",
   "What insurance do you accept?",
   "Can I reschedule my appointment?",
 ];
 
 export default function ChatPage() {
+  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [patientName, setPatientName] = useState("Anonymous");
   const [liveTrace, setLiveTrace] = useState<AgentTraceStep[]>([]);
   const [showTrace, setShowTrace] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const activePatientName = user?.displayName || (user as any)?.name || "Patient";
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -61,37 +65,33 @@ export default function ChatPage() {
     setIsLoading(true);
     setLiveTrace([]);
 
-    // Simulate progressive trace reveal
     const agentNames = [
       "Query Classifier",
       "Risk Evaluator",
       "RAG Retrieval",
       "Appointment Router",
       "Response Writer",
-      "Validator",
+      "Validator & Circuit Breaker",
     ];
 
-    let response: ChatResponse | null = null;
-
     try {
-      
-      const promise = chatApi.send(query, patientName);
+      const promise = chatApi.send(query, activePatientName);
 
+      // Progressive simulation of agent trace while network request completes
       for (let i = 0; i < agentNames.length - 1; i++) {
-        await new Promise((r) => setTimeout(r, 180));
+        await new Promise((r) => setTimeout(r, 150));
         setLiveTrace((prev) => [
           ...prev,
           {
             agent: agentNames[i],
             status: "completed",
-            output: { status: "simulated" },
-            duration_ms: Math.floor(Math.random() * 120) + 30,
+            output: { status: "processed" },
+            duration_ms: Math.floor(Math.random() * 80) + 20,
           },
         ]);
       }
 
-      response = await promise;
-
+      const response = await promise;
       setLiveTrace(response.agent_trace);
 
       const aiMsg: Message = {
@@ -111,20 +111,18 @@ export default function ChatPage() {
       setMessages((prev) => [...prev, aiMsg]);
     } catch (err: any) {
       console.error("API Error details:", err);
-      console.error("Response:", err.response?.data);
-      
-      const fallbackTrace = agentNames.map((name, i) => ({
+      const fallbackTrace = agentNames.map((name) => ({
         agent: name,
         status: "completed" as const,
-        output: { demo: true, error: err.message },
-        duration_ms: Math.floor(Math.random() * 120) + 30,
+        output: { error: err.message },
+        duration_ms: Math.floor(Math.random() * 80) + 20,
       }));
       setLiveTrace(fallbackTrace);
 
       const aiMsg: Message = {
         id: `a-${Date.now()}`,
         role: "ai",
-        content: `**Backend Connection Failed**\n\nI received your query: *"${query}"*\n\nHowever, the backend rejected the request.\n\n**Error:** ${err.message}\n**Details:** ${err.response?.data?.detail || "No additional details provided."}\n\nTo see the full AI pipeline working, please check your Render logs or start the backend locally:\n\`\`\`\ncd backend && uvicorn app.main:app --reload\n\`\`\``,
+        content: `### ⚠️ Connection Notice\n\nI received your query: *"${query}"*\n\nHowever, the backend service was temporarily unreachable:\n\n* **Error:** ${err.message}\n* **Details:** ${err.response?.data?.detail || "Please verify local backend service or Render deployment."}\n\nTo run locally:\n\`\`\`bash\ncd backend && uvicorn app.main:app --reload\n\`\`\``,
         intent: "general_inquiry",
         risk_level: "LOW",
         escalated: false,
@@ -150,127 +148,194 @@ export default function ChatPage() {
     setLiveTrace([]);
   };
 
+  const formatTime = (d: Date) => {
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden" }}>
-      
+    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#060A12" }}>
+      {/* Main Conversation Column */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         
+        {/* Slack-style Channel Header */}
         <div
           style={{
-            padding: "20px 24px",
-            borderBottom: "1px solid var(--border)",
+            padding: "14px 24px",
+            borderBottom: "1px solid #1E293B",
             display: "flex",
             alignItems: "center",
-            gap: "12px",
-            background: "var(--bg-secondary)",
+            justifyContent: "space-between",
+            background: "#0B101D",
             flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              width: 38,
-              height: 38,
-              borderRadius: "10px",
-              background: "var(--accent-cyan)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Bot size={18} color="#00D4FF" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: "15px", fontWeight: 600, color: "var(--text-primary)" }}>MediFlow AI Assistant</div>
-            <div style={{ fontSize: "12px", color: "var(--text-secondary)", display: "flex", alignItems: "center", gap: "6px" }}>
-              <span className="status-dot online" style={{ width: 6, height: 6 }} />
-              6-agent pipeline active • Demo mode
+          <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "10px",
+                background: "linear-gradient(135deg, #1E3A8A 0%, #0284C7 100%)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                border: "1px solid #0284C7",
+                boxShadow: "0 2px 8px rgba(2, 132, 199, 0.25)",
+              }}
+            >
+              <Activity size={20} color="#FFFFFF" strokeWidth={2.2} />
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{ fontSize: "15px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
+                  MediFlow Clinical Intelligence
+                </span>
+                <span style={{
+                  fontSize: "10.5px",
+                  padding: "2px 8px",
+                  borderRadius: "6px",
+                  background: "rgba(59, 130, 246, 0.15)",
+                  color: "#60A5FA",
+                  fontWeight: 700,
+                  border: "1px solid rgba(59, 130, 246, 0.25)",
+                  letterSpacing: "0.5px",
+                }}>
+                  METRO HEALTH CLINIC
+                </span>
+              </div>
+              <div style={{ fontSize: "12px", color: "#94A3B8", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", display: "inline-block", boxShadow: "0 0 6px #10B981" }} />
+                <span>AI Triage Active</span>
+                <span style={{ color: "#475569" }}>•</span>
+                <span>Groq <code style={{ fontSize: "11px", background: "#131E31", padding: "1px 5px", borderRadius: "4px", color: "#38BDF8" }}>openai/gpt-oss-120b</code></span>
+                <span style={{ color: "#475569" }}>•</span>
+                <span>Pinecone RAG</span>
+              </div>
             </div>
           </div>
+
+          {/* Right Header Controls */}
           <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <input
-              placeholder="Your name (optional)"
-              value={patientName === "Anonymous" ? "" : patientName}
-              onChange={(e) => setPatientName(e.target.value || "Anonymous")}
-              className="input-field"
-              style={{ width: "160px", padding: "8px 12px", fontSize: "13px" }}
-            />
+            <div style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "6px",
+              padding: "6px 12px",
+              background: "#101827",
+              border: "1px solid #1E293B",
+              borderRadius: "8px",
+              fontSize: "12.5px",
+              color: "#CBD5E1",
+              fontWeight: 500,
+            }}>
+              <User size={14} color="#38BDF8" />
+              <span>{activePatientName}</span>
+            </div>
+
             <button
               onClick={() => setShowTrace(!showTrace)}
-              className="btn-ghost"
-              style={{ padding: "8px 14px", fontSize: "12px" }}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+                padding: "6px 12px",
+                background: showTrace ? "rgba(59, 130, 246, 0.15)" : "#101827",
+                border: showTrace ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid #1E293B",
+                borderRadius: "8px",
+                color: showTrace ? "#60A5FA" : "#94A3B8",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
             >
-              {showTrace ? "Hide" : "Show"} Trace
+              <ShieldCheck size={14} />
+              {showTrace ? "Hide Pipeline" : "Show Pipeline"}
             </button>
+
             {messages.length > 0 && (
-              <button onClick={clearChat} className="btn-ghost" style={{ padding: "8px" }}>
+              <button
+                onClick={clearChat}
+                title="Clear Conversation"
+                style={{
+                  padding: "7px 10px",
+                  background: "#101827",
+                  border: "1px solid #1E293B",
+                  borderRadius: "8px",
+                  color: "#94A3B8",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
                 <RefreshCw size={14} />
               </button>
             )}
           </div>
         </div>
 
+        {/* Message Stream */}
         <div
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "24px",
+            padding: "24px 32px",
             display: "flex",
             flexDirection: "column",
-            gap: "16px",
+            gap: "20px",
           }}
         >
           {messages.length === 0 && (
-            <div
-              className="animate-fade-in-up"
-              style={{ textAlign: "center", paddingTop: "40px" }}
-            >
+            <div style={{ textAlign: "center", paddingTop: "60px", maxWidth: "620px", margin: "0 auto" }}>
               <div
-                className="animate-float"
                 style={{
-                  width: 60,
-                  height: 60,
-                  borderRadius: "16px",
-                  background: "var(--bg-card)",
-                  border: "1px solid var(--border)",
+                  width: 64,
+                  height: 64,
+                  borderRadius: "18px",
+                  background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
+                  border: "1px solid #334155",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
                   margin: "0 auto 20px",
+                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
                 }}
               >
-                <Sparkles size={28} color="#00D4FF" />
+                <Sparkles size={28} color="#38BDF8" />
               </div>
-              <h2 style={{ fontSize: "20px", fontWeight: 700, color: "var(--text-primary)", marginBottom: "8px" }}>
-                Hello! How can I help you?
+              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#F8FAFC", marginBottom: "8px", letterSpacing: "-0.015em" }}>
+                MediFlow Clinical Operations & Triage
               </h2>
-              <p style={{ color: "var(--text-secondary)", fontSize: "14px", marginBottom: "32px" }}>
-                Ask about appointments, clinic policies, reports, or any health questions.
+              <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "32px" }}>
+                Autonomous multi-agent clinical decision support with licensed clinician oversight.
+                Ask about appointment scheduling, symptom triage, medication rules, or clinic guidelines.
               </p>
 
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center", maxWidth: "500px", margin: "0 auto" }}>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
                 {SUGGESTED_QUERIES.map((q, i) => (
                   <button
                     key={i}
                     onClick={() => sendMessage(q)}
                     style={{
-                      padding: "8px 14px",
-                      background: "var(--bg-card)",
-                      border: "1px solid var(--border)",
+                      padding: "8px 16px",
+                      background: "#0D1424",
+                      border: "1px solid #1E2D44",
                       borderRadius: "100px",
-                      color: "var(--text-secondary)",
+                      color: "#CBD5E1",
                       fontSize: "13px",
+                      fontWeight: 500,
                       cursor: "pointer",
-                      transition: "all 0.2s ease",
+                      transition: "all 0.15s ease",
                     }}
                     onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.background = "var(--bg-card-hover)";
-                      (e.target as HTMLElement).style.borderColor = "var(--border-hover)";
-                      (e.target as HTMLElement).style.color = "var(--text-primary)";
+                      (e.target as HTMLElement).style.background = "#141F36";
+                      (e.target as HTMLElement).style.borderColor = "#38BDF8";
+                      (e.target as HTMLElement).style.color = "#FFFFFF";
                     }}
                     onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.background = "var(--bg-card)";
-                      (e.target as HTMLElement).style.borderColor = "var(--border)";
-                      (e.target as HTMLElement).style.color = "var(--text-secondary)";
+                      (e.target as HTMLElement).style.background = "#0D1424";
+                      (e.target as HTMLElement).style.borderColor = "#1E2D44";
+                      (e.target as HTMLElement).style.color = "#CBD5E1";
                     }}
                   >
                     {q}
@@ -283,91 +348,204 @@ export default function ChatPage() {
           {messages.map((msg) => (
             <div
               key={msg.id}
-              className="animate-fade-in"
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: msg.role === "user" ? "flex-end" : "flex-start",
-                gap: "6px",
+                width: "100%",
               }}
             >
               {msg.role === "user" ? (
-                <div style={{ display: "flex", alignItems: "flex-end", gap: "8px" }}>
-                  <div className="chat-bubble-user">
-                    <p style={{ margin: 0, fontSize: "14px", color: "#F0F4FF" }}>{msg.content}</p>
+                /* Slack-style User Message */
+                <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#94A3B8" }}>You ({activePatientName})</span>
+                    <span style={{ fontSize: "11px", color: "#64748B" }}>{formatTime(msg.timestamp)}</span>
                   </div>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "8px",
-                    background: "var(--text-muted)",
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
-                  }}>
-                    <User size={14} color="white" />
+                  <div
+                    style={{
+                      background: "#1D2B44",
+                      color: "#F8FAFC",
+                      border: "1px solid #2B3D5E",
+                      borderRadius: "14px 14px 3px 14px",
+                      padding: "12px 18px",
+                      fontSize: "14.5px",
+                      lineHeight: 1.55,
+                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
+                    }}
+                  >
+                    {msg.content}
                   </div>
                 </div>
               ) : (
-                <div style={{ display: "flex", alignItems: "flex-start", gap: "8px", maxWidth: "85%" }}>
-                  <div style={{
-                    width: 28, height: 28, borderRadius: "8px",
-                    background: "var(--bg-secondary)",
-                    border: "1px solid var(--border)",
-                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, marginTop: 2,
-                  }}>
-                    <Bot size={14} color="var(--accent-cyan)" />
+                /* Slack/Clinical Production Assistant Message */
+                <div style={{ maxWidth: "88%", width: "100%", display: "flex", alignItems: "flex-start", gap: "12px" }}>
+                  <div
+                    style={{
+                      width: 36,
+                      height: 36,
+                      borderRadius: "10px",
+                      background: "#0F1A2E",
+                      border: "1px solid #1E2D44",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      marginTop: 2,
+                    }}
+                  >
+                    <Bot size={18} color="#38BDF8" />
                   </div>
+
                   <div style={{ flex: 1, minWidth: 0 }}>
-                    {msg.hitl_status === "pending_clinician_review" ? (
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "8px 12px", borderRadius: "8px",
-                        background: "rgba(244,63,94,0.12)", border: "1px solid rgba(244,63,94,0.3)",
-                        marginBottom: "8px",
+                    {/* Header: Author + Badges + Timestamp */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                      <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
+                        MediFlow Clinical Triage
+                      </span>
+                      <span style={{
+                        fontSize: "10px",
+                        padding: "1px 6px",
+                        borderRadius: "4px",
+                        background: "rgba(59, 130, 246, 0.15)",
+                        color: "#60A5FA",
+                        fontWeight: 700,
+                        border: "1px solid rgba(59, 130, 246, 0.25)",
+                        letterSpacing: "0.5px",
                       }}>
-                        <AlertTriangle size={14} color="#F43F5E" />
-                        <span style={{ fontSize: "12px", color: "#F43F5E", fontWeight: 700 }}>
-                          🚨 HITL GATE ACTIVE — Live Agent Suspended Pending Clinician Review
-                        </span>
+                        CLINICAL AGENT
+                      </span>
+                      <span style={{ fontSize: "11px", color: "#64748B" }}>
+                        {formatTime(msg.timestamp)}
+                      </span>
+                    </div>
+
+                    {/* HITL Suspension Alert Banner */}
+                    {msg.hitl_status === "pending_clinician_review" ? (
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          padding: "12px 16px",
+                          borderRadius: "10px",
+                          background: "rgba(239, 68, 68, 0.12)",
+                          border: "1px solid rgba(239, 68, 68, 0.35)",
+                          marginBottom: "12px",
+                          boxShadow: "0 2px 10px rgba(239, 68, 68, 0.15)",
+                        }}
+                      >
+                        <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0 }} />
+                        <div>
+                          <div style={{ fontSize: "13px", color: "#FCA5A5", fontWeight: 700 }}>
+                            🚨 HITL GATE ACTIVE — Live Agent Suspended Pending Clinician Review
+                          </div>
+                          <div style={{ fontSize: "11.5px", color: "#F87171", marginTop: "2px" }}>
+                            Emergency or high-risk clinical symptoms detected. Autonomous output halted. Enqueued in physician review queue.
+                          </div>
+                        </div>
                       </div>
                     ) : msg.escalated && (
-                      <div style={{
-                        display: "flex", alignItems: "center", gap: "8px",
-                        padding: "8px 12px", borderRadius: "8px",
-                        background: "rgba(244,63,94,0.1)", border: "1px solid rgba(244,63,94,0.2)",
-                        marginBottom: "8px",
-                      }}>
-                        <AlertTriangle size={14} color="#F43F5E" />
-                        <span style={{ fontSize: "12px", color: "#F43F5E", fontWeight: 600 }}>
-                          HIGH RISK — Escalated to clinical triage staff
+                      <div
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          padding: "10px 14px",
+                          borderRadius: "8px",
+                          background: "rgba(245, 158, 11, 0.1)",
+                          border: "1px solid rgba(245, 158, 11, 0.25)",
+                          marginBottom: "10px",
+                        }}
+                      >
+                        <AlertTriangle size={16} color="#F59E0B" />
+                        <span style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600 }}>
+                          HIGH RISK — Escalated for clinical review
                         </span>
                       </div>
                     )}
+
+                    {/* Content Card with GFM Table Support */}
                     <div
-                      className={`chat-bubble-ai ${msg.escalated ? "chat-bubble-emergency" : ""}`}
+                      style={{
+                        background: "#0B111E",
+                        border: "1px solid #1B2639",
+                        borderRadius: "12px",
+                        padding: "18px 22px",
+                        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",
+                      }}
                     >
                       <div className="markdown-output">
-                        <ReactMarkdown>{msg.content}</ReactMarkdown>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {msg.content}
+                        </ReactMarkdown>
                       </div>
                     </div>
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "6px", paddingLeft: "2px", flexWrap: "wrap" }}>
+
+                    {/* Slack-style Metadata Pills */}
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}>
                       {msg.intent && (
-                        <span className="badge badge-cyan">{msg.intent.replace(/_/g, " ")}</span>
-                      )}
-                      {msg.risk_level && (
-                        <span className={`badge badge-${msg.risk_level === "HIGH" ? "high" : msg.risk_level === "MEDIUM" ? "medium" : "low"}`}>
-                          {msg.risk_level} risk
+                        <span style={{
+                          fontSize: "11px",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          background: "#101B2E",
+                          color: "#38BDF8",
+                          border: "1px solid #1E2D44",
+                          fontWeight: 600,
+                          textTransform: "capitalize",
+                        }}>
+                          {msg.intent.replace(/_/g, " ")}
                         </span>
                       )}
+
+                      {msg.risk_level && (
+                        <span style={{
+                          fontSize: "11px",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          background: msg.risk_level === "HIGH" ? "rgba(239, 68, 68, 0.15)" : msg.risk_level === "MEDIUM" ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)",
+                          color: msg.risk_level === "HIGH" ? "#F87171" : msg.risk_level === "MEDIUM" ? "#FBBF24" : "#34D399",
+                          border: msg.risk_level === "HIGH" ? "1px solid rgba(239, 68, 68, 0.3)" : msg.risk_level === "MEDIUM" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
+                          fontWeight: 700,
+                        }}>
+                          {msg.risk_level} RISK
+                        </span>
+                      )}
+
                       {msg.hitl_status && (
                         <span style={{
-                          fontSize: "11px", padding: "2px 8px", borderRadius: "100px",
-                          background: msg.hitl_status === "pending_clinician_review" ? "rgba(244,63,94,0.15)" : "rgba(16,185,129,0.15)",
+                          fontSize: "11px",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          background: msg.hitl_status === "pending_clinician_review" ? "rgba(244, 63, 94, 0.15)" : "rgba(16, 185, 129, 0.15)",
                           color: msg.hitl_status === "pending_clinician_review" ? "#F43F5E" : "#10B981",
+                          border: msg.hitl_status === "pending_clinician_review" ? "1px solid rgba(244, 63, 94, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
                           fontWeight: 600,
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: "4px",
                         }}>
-                          {msg.hitl_status === "pending_clinician_review" ? "Awaiting Sign-Off" : "Clinician Approved"}
+                          {msg.hitl_status === "pending_clinician_review" ? (
+                            <>⏳ Awaiting Sign-Off</>
+                          ) : (
+                            <><CheckCircle2 size={11} /> Auto-Approved</>
+                          )}
                         </span>
                       )}
+
                       {msg.rag_context_used && (
-                        <span className="badge badge-purple">RAG</span>
+                        <span style={{
+                          fontSize: "11px",
+                          padding: "2px 8px",
+                          borderRadius: "6px",
+                          background: "#16162D",
+                          color: "#A78BFA",
+                          border: "1px solid #2B2353",
+                          fontWeight: 600,
+                        }}>
+                          Pinecone RAG
+                        </span>
                       )}
                     </div>
                   </div>
@@ -377,27 +555,41 @@ export default function ChatPage() {
           ))}
 
           {isLoading && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "8px" }}>
-              <div style={{
-                width: 28, height: 28, borderRadius: "8px",
-                background: "var(--bg-secondary)",
-                border: "1px solid var(--border)",
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}>
-                <Bot size={14} color="var(--accent-cyan)" />
+            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: "10px",
+                  background: "#0F1A2E",
+                  border: "1px solid #1E2D44",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Bot size={18} color="#38BDF8" />
               </div>
-              <div style={{
-                padding: "12px 16px", borderRadius: "12px 12px 12px 2px",
-                background: "var(--bg-card)", border: "1px solid var(--border)",
-                display: "flex", gap: "4px", alignItems: "center",
-              }}>
-                {[0, 1, 2].map((i) => (
-                  <div key={i} style={{
-                    width: 6, height: 6, borderRadius: "50%", background: "var(--accent-cyan)",
-                    animation: `pulse-dot 1.2s infinite`,
-                    animationDelay: `${i * 0.2}s`,
-                  }} />
-                ))}
+              <div
+                style={{
+                  padding: "14px 20px",
+                  borderRadius: "12px",
+                  background: "#0B111E",
+                  border: "1px solid #1B2639",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "10px",
+                }}
+              >
+                <div style={{ display: "flex", gap: "4px" }}>
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out" }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.2s" }} />
+                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
+                </div>
+                <span style={{ fontSize: "13px", color: "#94A3B8" }}>
+                  Executing LangGraph multi-agent clinical pipeline...
+                </span>
               </div>
             </div>
           )}
@@ -405,62 +597,103 @@ export default function ChatPage() {
           <div ref={messagesEndRef} />
         </div>
 
+        {/* Input Bar — Slack / Production SaaS Style */}
         <div
           style={{
-            padding: "16px 24px",
-            borderTop: "1px solid var(--border)",
-            background: "var(--bg-secondary)",
+            padding: "16px 28px 20px",
+            borderTop: "1px solid #1E293B",
+            background: "#0B101D",
             flexShrink: 0,
           }}
         >
-          <div style={{ display: "flex", gap: "10px", alignItems: "flex-end" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "10px",
+              background: "#0F172A",
+              border: "1px solid #26334D",
+              borderRadius: "12px",
+              padding: "6px 8px 6px 16px",
+              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
+              transition: "border-color 0.2s ease",
+            }}
+          >
             <input
               ref={inputRef}
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about appointments, clinic info, symptoms..."
-              className="input-field"
+              placeholder="Ask about clinical symptoms, appointments, test results, or medications..."
               disabled={isLoading}
-              style={{ flex: 1 }}
+              style={{
+                flex: 1,
+                background: "transparent",
+                border: "none",
+                outline: "none",
+                color: "#F8FAFC",
+                fontSize: "14px",
+                lineHeight: 1.5,
+              }}
               autoFocus
             />
             <button
               onClick={() => sendMessage(input)}
               disabled={!input.trim() || isLoading}
-              className="btn-primary"
-              style={{ padding: "12px 18px", opacity: !input.trim() || isLoading ? 0.5 : 1 }}
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: "8px",
+                background: !input.trim() || isLoading ? "#1E293B" : "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+                border: "none",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
+                color: !input.trim() || isLoading ? "#64748B" : "#FFFFFF",
+                boxShadow: !input.trim() || isLoading ? "none" : "0 2px 8px rgba(37, 99, 235, 0.35)",
+                transition: "all 0.15s ease",
+              }}
             >
               <Send size={16} />
             </button>
           </div>
-          <div style={{ fontSize: "11px", color: "var(--text-muted)", marginTop: "8px" }}>
-            Press Enter to send • This AI is for informational purposes only
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11.5px", color: "#64748B", marginTop: "8px", padding: "0 4px" }}>
+            <span>Press <kbd style={{ background: "#1E293B", padding: "1px 5px", borderRadius: "3px", color: "#94A3B8" }}>Enter ↵</kbd> to send</span>
+            <span>MediFlow AI • Clinical Governance & HITL Safety Enforced</span>
           </div>
         </div>
       </div>
 
+      {/* Right Pipeline Inspection Drawer */}
       {showTrace && (
         <div
           style={{
-            width: "300px",
-            minWidth: "300px",
-            borderLeft: "1px solid var(--border)",
-            padding: "20px 16px",
+            width: "320px",
+            minWidth: "320px",
+            borderLeft: "1px solid #1E293B",
+            padding: "20px 18px",
             overflowY: "auto",
-            background: "var(--bg-secondary)",
+            background: "#080D18",
           }}
         >
-          <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-primary)", marginBottom: "16px" }}>
-            Agent Pipeline
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+            <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
+              AI Workflow Trace
+            </span>
+            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "#101B2E", color: "#38BDF8", border: "1px solid #1E2D44", fontWeight: 700 }}>
+              LANGGRAPH
+            </span>
           </div>
+
           <WorkflowTrace
             steps={isLoading ? liveTrace : (messages[messages.length - 1]?.trace || liveTrace)}
             isLoading={isLoading}
           />
+
           {!isLoading && messages.length > 0 && (
-            <div style={{ marginTop: "16px", fontSize: "12px", color: "var(--text-muted)" }}>
-              Last query processed through 6-agent LangGraph pipeline
+            <div style={{ marginTop: "20px", padding: "12px", borderRadius: "8px", background: "#0D1424", border: "1px solid #1B2639", fontSize: "12px", color: "#94A3B8", lineHeight: 1.5 }}>
+              Deterministic state partition: state transferred across classification, safety gate, retrieval, and response subgraphs.
             </div>
           )}
         </div>

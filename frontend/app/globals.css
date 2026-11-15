@@ -33,12 +33,13 @@ html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   background-color: var(--bg-primary);
   color: var(--text-primary);
   min-height: 100vh;
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
 /* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
@@ -317,35 +318,124 @@ body {
 }
 .data-table tr:hover td { background: var(--bg-card-hover); }
 
-/* ─── Markdown Output ───────────────────────────────────────────────────────── */
-.markdown-output h1, .markdown-output h2, .markdown-output h3 {
-  color: var(--text-primary);
-  margin-top: 1.2em;
-  margin-bottom: 0.6em;
+/* ─── Markdown Output (Slack & Clinical SaaS Typography) ─────────────────── */
+.markdown-output {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.65;
+  color: #E2E8F0;
+  letter-spacing: -0.01em;
+}
+
+.markdown-output h1, .markdown-output h2, .markdown-output h3, .markdown-output h4 {
+  color: #F8FAFC;
+  margin-top: 14px;
+  margin-bottom: 8px;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.markdown-output h3 {
+  font-size: 15px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: 6px;
+}
+
+.markdown-output p {
+  color: #E2E8F0;
+  margin-top: 0;
+  margin-bottom: 10px;
+  line-height: 1.65;
+}
+
+.markdown-output ul, .markdown-output ol {
+  padding-left: 20px;
+  margin-top: 4px;
+  margin-bottom: 12px;
+  color: #CBD5E1;
+}
+
+.markdown-output li {
+  margin-bottom: 5px;
+  line-height: 1.55;
+}
+
+.markdown-output strong {
+  color: #FFFFFF;
   font-weight: 600;
 }
-.markdown-output p { color: var(--text-secondary); margin-bottom: 0.8em; line-height: 1.6; }
-.markdown-output ul, .markdown-output ol { padding-left: 1.5em; margin-bottom: 0.8em; color: var(--text-secondary); }
-.markdown-output li { margin-bottom: 4px; }
-.markdown-output strong { color: var(--text-primary); font-weight: 600; }
+
+.markdown-output hr {
+  border: none;
+  border-top: 1px solid #1E293B;
+  margin: 16px 0;
+}
+
+/* ─── Markdown Tables (Clinical Grade GFM) ───────────────────────────────── */
+.markdown-output table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 14px 0;
+  background: #0B111E;
+  border: 1px solid #202D42;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 13.5px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.markdown-output thead {
+  background: #141E30;
+}
+
+.markdown-output th {
+  padding: 10px 14px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: #94A3B8;
+  border-bottom: 1px solid #202D42;
+}
+
+.markdown-output td {
+  padding: 10px 14px;
+  color: #E2E8F0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  vertical-align: middle;
+}
+
+.markdown-output tr:last-child td {
+  border-bottom: none;
+}
+
+.markdown-output tr:hover td {
+  background: rgba(255, 255, 255, 0.025);
+}
+
 .markdown-output code {
-  font-family: 'JetBrains Mono', monospace;
-  background: var(--bg-primary);
+  font-family: 'JetBrains Mono', Consolas, monospace;
+  background: #111A29;
   padding: 2px 6px;
   border-radius: 4px;
-  font-size: 0.85em;
-  color: var(--text-primary);
-  border: 1px solid var(--border);
+  font-size: 12px;
+  color: #38BDF8;
+  border: 1px solid #1E2D44;
 }
+
 .markdown-output blockquote {
-  border-left: 4px solid var(--border-hover);
-  padding-left: 16px;
-  margin-left: 0;
-  color: var(--text-secondary);
-  background: var(--bg-primary);
-  padding-top: 8px;
-  padding-bottom: 8px;
-  border-radius: 0 4px 4px 0;
+  border-left: 3px solid #38BDF8;
+  padding: 8px 14px;
+  margin: 10px 0;
+  color: #94A3B8;
+  background: #0E1626;
+  border-radius: 0 6px 6px 0;
+  font-size: 13.5px;
 }
 
 /* ─── Loading Skeleton ──────────────────────────────────────────────────────── */
