@@ -1,15 +1,14 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import { Sidebar } from "@/components/layout/Sidebar";
+import { AuthProvider } from "@/components/AuthProvider";
+import { AppShell } from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "MediFlow AI — Multi-Agent Clinic Operations Platform",
+  title: "MediFlow AI — Clinical Intelligence Platform with Human-in-the-Loop Oversight",
   description:
-    "AI-powered clinic operations: appointment scheduling, patient query handling, risk escalation, and document management — all in one intelligent platform.",
-  keywords: "healthcare AI, clinic management, appointment booking, medical AI assistant",
+    "Production-grade clinical intelligence and multi-agent triage platform built with LangGraph, FastAPI, and PostgreSQL Row-Level Security.",
+  keywords: "healthcare AI, clinical triage, LangGraph, HITL, medical assistant, clinical decision support",
 };
-
-import { AuthProvider } from "@/components/AuthProvider";
 
 export default function RootLayout({
   children,
@@ -22,14 +21,11 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
       </head>
-      <body className="bg-mesh">
+      <body>
         <AuthProvider>
-          <div className="flex h-screen overflow-hidden">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">
-              {children}
-            </main>
-          </div>
+          <AppShell>
+            {children}
+          </AppShell>
         </AuthProvider>
       </body>
     </html>

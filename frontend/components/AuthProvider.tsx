@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { User, onAuthStateChanged, signInWithPopup } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
-import { Heart, LogIn, UserCheck, Stethoscope } from "lucide-react";
+import { SignInModal } from "@/components/home/SignInModal";
 
 export const ADMIN_EMAIL = "prannesshkva@gmail.com";
 export const ADMIN_EMAILS = ["prannesshkva@gmail.com", "prannesshkva2@gmail.com"];
@@ -28,6 +28,11 @@ interface AuthContextType {
   loading: boolean;
   isDemoUser: boolean;
   isAdmin: boolean;
+  loginError: string;
+  showSignInModal: boolean;
+  openSignInModal: (redirectPath?: string) => void;
+  closeSignInModal: () => void;
+  signInWithGoogle: () => Promise<void>;
   loginAsDemoClinician: () => void;
   loginAsDemoPatient: () => void;
   logout: () => Promise<void>;
@@ -38,6 +43,11 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
   isDemoUser: false,
   isAdmin: false,
+  loginError: "",
+  showSignInModal: false,
+  openSignInModal: () => {},
+  closeSignInModal: () => {},
+  signInWithGoogle: async () => {},
   loginAsDemoClinician: () => {},
   loginAsDemoPatient: () => {},
   logout: async () => {},
@@ -50,6 +60,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
   const [loginError, setLoginError] = useState("");
   const [isDemoUser, setIsDemoUser] = useState(false);
+  const [showSignInModal, setShowSignInModal] = useState(false);
+  const [redirectPath, setRedirectPath] = useState("/chat");
 
   useEffect(() => {
     // Check if demo user was previously activated in local storage
@@ -84,7 +96,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const demo: DemoUser = {
       uid: "admin-prannessh",
       email: ADMIN_EMAIL,
-      displayName: "Prannessh KVA",
+      displayName: "Prannessh KVA (Clinical Director)",
       photoURL: null,
       tenant_id: "tenant-default",
       role: "clinician",
@@ -95,13 +107,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setUser(demo);
     setIsDemoUser(true);
+    setLoginError("");
   };
 
   const setDemoPatientState = () => {
     const demo: DemoUser = {
       uid: "patient-user",
       email: "patient@mediflow.internal",
-      displayName: "Patient User",
+      displayName: "Alex Johnson (Patient)",
       photoURL: null,
       tenant_id: "tenant-default",
       role: "patient",
@@ -112,16 +125,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
     setUser(demo);
     setIsDemoUser(true);
+    setLoginError("");
   };
 
-  const handleSignIn = async () => {
+  const signInWithGoogle = async () => {
     try {
       setLoginError("");
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
       console.warn("Firebase sign in error; offering zero-config demo bypass.", error);
       setLoginError(
-        `Firebase Error: ${error.code || error.message}. You can click "Access as Demo Clinician" below to enter immediately.`
+        `Firebase Error: ${error.code || error.message}. Use "Access as Clinical Director" for instant access.`
       );
     }
   };
@@ -139,168 +153,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  if (loading) {
-    return (
-      <div style={{ height: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: "#0A0F1E" }}>
-        <div style={{
-          width: 40, height: 40, borderRadius: "50%",
-          border: "3px solid rgba(0, 212, 255, 0.2)",
-          borderTopColor: "#00D4FF",
-          animation: "spin 1s linear infinite"
-        }} />
-        <style>{`@keyframes spin { 100% { transform: rotate(360deg); } }`}</style>
-      </div>
-    );
-  }
+  const openSignInModal = (path?: string) => {
+    if (path) setRedirectPath(path);
+    setShowSignInModal(true);
+  };
 
-  if (!user) {
-    return (
-      <div style={{
-        minHeight: "100vh",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "url('https://www.transparenttextures.com/patterns/stardust.png'), linear-gradient(135deg, #0A0F1E 0%, #1A1F35 100%)",
-        padding: "24px",
-      }}>
-        <div className="glass-card" style={{
-          padding: "40px",
-          maxWidth: "460px",
-          width: "100%",
-          textAlign: "center",
-          borderRadius: "24px",
-          boxShadow: "0 24px 48px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.1)",
-          backdropFilter: "blur(20px)",
-          border: "1px solid rgba(255,255,255,0.08)"
-        }}>
-          <div style={{
-            width: 68,
-            height: 68,
-            borderRadius: "18px",
-            background: "linear-gradient(135deg, #00D4FF, #7C3AED)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            margin: "0 auto 20px",
-            boxShadow: "0 12px 24px rgba(124, 58, 237, 0.4)"
-          }}>
-            <Heart size={34} color="white" strokeWidth={2.5} />
-          </div>
-          
-          <h1 style={{ fontSize: "26px", fontWeight: 800, color: "#fff", marginBottom: "8px", letterSpacing: "-0.5px" }}>
-            Welcome to MediFlow AI
-          </h1>
-          <p style={{ color: "#8B9BC8", fontSize: "14px", marginBottom: "24px", lineHeight: 1.5 }}>
-            Clinical Intelligence Platform with Human-in-the-Loop (HITL) Oversight &amp; Document Ingestion.
-          </p>
-
-          {loginError && (
-            <div style={{ color: "#ff6b6b", fontSize: "12px", marginBottom: "16px", background: "rgba(255,77,79,0.12)", padding: "10px", borderRadius: "8px", textAlign: "left" }}>
-              {loginError}
-            </div>
-          )}
-
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            {/* 1-Click Zero-Config Clinical Director Access */}
-            <button
-              onClick={setDemoClinicianState}
-              style={{
-                width: "100%",
-                padding: "14px 16px",
-                background: "linear-gradient(135deg, #00D4FF 0%, #0099FF 100%)",
-                border: "none",
-                borderRadius: "12px",
-                color: "#0A0F1E",
-                fontSize: "14px",
-                fontWeight: 700,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                cursor: "pointer",
-                boxShadow: "0 8px 18px rgba(0, 212, 255, 0.35)",
-                transition: "transform 0.15s, box-shadow 0.15s",
-              }}
-              onMouseOver={(e) => e.currentTarget.style.transform = "translateY(-1px)"}
-              onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
-            >
-              <Stethoscope size={18} color="#0A0F1E" strokeWidth={2.5} />
-              Enter as Clinical Director
-            </button>
-
-            {/* Patient Access */}
-            <button
-              onClick={setDemoPatientState}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                background: "rgba(255, 255, 255, 0.08)",
-                border: "1px solid rgba(255, 255, 255, 0.15)",
-                borderRadius: "12px",
-                color: "#E2E8F0",
-                fontSize: "13.5px",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                cursor: "pointer",
-                transition: "background 0.2s",
-              }}
-              onMouseOver={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.14)"}
-              onMouseOut={(e) => e.currentTarget.style.background = "rgba(255, 255, 255, 0.08)"}
-            >
-              <UserCheck size={18} color="#00D4FF" />
-              Enter as Patient User
-            </button>
-
-            <div style={{ display: "flex", alignItems: "center", gap: "10px", margin: "6px 0", color: "#64748B", fontSize: "12px" }}>
-              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
-              OR GOOGLE SIGN IN
-              <div style={{ flex: 1, height: "1px", background: "rgba(255,255,255,0.08)" }} />
-            </div>
-
-            {/* Google Firebase Login */}
-            <button
-              onClick={handleSignIn}
-              style={{
-                width: "100%",
-                padding: "12px 16px",
-                background: "#fff",
-                border: "none",
-                borderRadius: "12px",
-                color: "#0A0F1E",
-                fontSize: "13.5px",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: "10px",
-                cursor: "pointer",
-              }}
-            >
-              <LogIn size={18} color="#0A0F1E" />
-              Continue with Google (Firebase)
-            </button>
-          </div>
-        </div>
-      </div>
-    );
-  }
+  const closeSignInModal = () => {
+    setShowSignInModal(false);
+  };
 
   const isAdmin = Boolean(user?.email && isUserAdmin(user.email));
 
   return (
-    <AuthContext.Provider value={{
-      user,
-      loading,
-      isDemoUser,
-      isAdmin,
-      loginAsDemoClinician: setDemoClinicianState,
-      loginAsDemoPatient: setDemoPatientState,
-      logout,
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        loading,
+        isDemoUser,
+        isAdmin,
+        loginError,
+        showSignInModal,
+        openSignInModal,
+        closeSignInModal,
+        signInWithGoogle,
+        loginAsDemoClinician: setDemoClinicianState,
+        loginAsDemoPatient: setDemoPatientState,
+        logout,
+      }}
+    >
       {children}
+      <SignInModal
+        isOpen={showSignInModal}
+        onClose={closeSignInModal}
+        redirectTo={redirectPath}
+      />
     </AuthContext.Provider>
   );
 };

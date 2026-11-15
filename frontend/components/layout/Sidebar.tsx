@@ -3,8 +3,6 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth, isUserAdmin } from "@/components/AuthProvider";
-import { auth, googleProvider } from "@/lib/firebase";
-import { signInWithPopup, signOut } from "firebase/auth";
 import {
   Activity,
   Bot,
@@ -15,28 +13,20 @@ import {
   Shield,
   ChevronRight,
   LogOut,
-  LogIn
+  ArrowLeft,
+  Home
 } from "lucide-react";
 
 const navItems = [
-  { href: "/", icon: LayoutDashboard, label: "Overview", section: "patient" },
   { href: "/chat", icon: Bot, label: "AI Assistant", section: "patient" },
   { href: "/appointments", icon: Calendar, label: "Appointments", section: "patient" },
-  { href: "/reports", icon: FileText, label: "Reports", section: "patient" },
-  { href: "/admin", icon: Shield, label: "Admin Dashboard", section: "admin" },
+  { href: "/reports", icon: FileText, label: "Reports Ingest", section: "patient" },
+  { href: "/admin", icon: Shield, label: "Admin & HITL", section: "admin" },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { user, loading, logout } = useAuth();
-
-  const handleSignIn = async () => {
-    try {
-      await signInWithPopup(auth, googleProvider);
-    } catch (error) {
-      console.error("Login failed", error);
-    }
-  };
 
   const handleSignOut = async () => {
     try {
@@ -59,20 +49,20 @@ export function Sidebar() {
         borderRight: "1px solid var(--border)",
         display: "flex",
         flexDirection: "column",
-        padding: "20px 12px",
+        padding: "16px 12px",
         position: "relative",
         zIndex: 10,
       }}
     >
-      
-      <div style={{ padding: "8px 10px 24px" }}>
+      {/* Brand Header */}
+      <div style={{ padding: "4px 8px 16px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
           <div
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: "10px",
-              background: "var(--accent-cyan)",
+              width: 34,
+              height: 34,
+              borderRadius: "8px",
+              background: "#0C66E4",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
@@ -87,6 +77,7 @@ export function Sidebar() {
                 fontSize: "15px",
                 fontWeight: 700,
                 color: "var(--text-primary)",
+                letterSpacing: "-0.2px",
               }}
             >
               MediFlow AI
@@ -96,8 +87,32 @@ export function Sidebar() {
             </div>
           </div>
         </div>
+
+        {/* Back to Public Atlassian Homepage Link */}
+        <Link
+          href="/"
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "14px",
+            padding: "8px 10px",
+            borderRadius: "6px",
+            background: "rgba(12, 102, 228, 0.12)",
+            border: "1px solid rgba(12, 102, 228, 0.25)",
+            color: "#60A5FA",
+            fontSize: "12px",
+            fontWeight: 600,
+            textDecoration: "none",
+            transition: "all 0.15s ease",
+          }}
+        >
+          <Home size={14} />
+          <span>← Public Homepage</span>
+        </Link>
       </div>
 
+      {/* Patient Workspace Section */}
       <div style={{ marginBottom: "8px" }}>
         <div
           style={{
@@ -109,7 +124,7 @@ export function Sidebar() {
             marginBottom: "6px",
           }}
         >
-          PATIENT
+          CLINICAL WORKSPACE
         </div>
         {navItems
           .filter((i) => i.section === "patient")
@@ -136,7 +151,7 @@ export function Sidebar() {
 
       {/* Admin Section — STRICTLY AUTHORIZED FOR CLINICAL DIRECTORS */}
       {isUserAdmin(user?.email) && (
-        <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
+        <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
           <div
             style={{
               fontSize: "10px",
@@ -185,32 +200,45 @@ export function Sidebar() {
         </div>
       )}
 
+      {/* User profile & Sign Out */}
       <div style={{ marginTop: "auto" }}>
         {loading ? (
           <div className="glass-card-static" style={{ padding: "12px 14px", opacity: 0.5 }}>Loading...</div>
         ) : user ? (
           <div className="glass-card-static" style={{ padding: "12px 14px" }}>
             <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "10px" }}>
-              {user.photoURL ? (
-                <img src={user.photoURL} alt="Profile" style={{ width: 32, height: 32, borderRadius: "50%" }} />
-              ) : (
-                <div style={{ width: 32, height: 32, borderRadius: "50%", background: "var(--text-muted)" }} />
-              )}
+              <div
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "50%",
+                  background: isUserAdmin(user?.email) ? "#0C66E4" : "#10B981",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "white",
+                  fontSize: "12px",
+                  fontWeight: 700,
+                  flexShrink: 0
+                }}
+              >
+                {user.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
+              </div>
               <div style={{ overflow: "hidden" }}>
                 <div style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
                   {user.displayName || (isUserAdmin(user?.email) ? "Clinical Director" : "Patient User")}
                 </div>
                 <div style={{ fontSize: "10px", color: isUserAdmin(user?.email) ? "#38BDF8" : "var(--text-secondary)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                  {isUserAdmin(user?.email) ? "Clinical Director" : "Patient Account"}
+                  {isUserAdmin(user?.email) ? "Clinical Director (MD)" : "Patient Account"}
                 </div>
               </div>
             </div>
             <button
               onClick={handleSignOut}
               className="btn-danger"
-              style={{ width: "100%", justifyContent: "center" }}
+              style={{ width: "100%", justifyContent: "center", padding: "6px 10px", fontSize: "12px" }}
             >
-              <LogOut size={14} /> Sign Out
+              <LogOut size={13} /> Sign Out
             </button>
           </div>
         ) : null}
