@@ -130,12 +130,11 @@ async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCrede
 async def require_admin_user(user: User = Depends(get_current_user)) -> User:
     """
     Enforces strict administrative authority.
-    Only authorized Clinical Directors (prannesshkva@gmail.com, prannesshkva2@gmail.com)
-    can access administrative and clinical controls.
+    Only authorized Clinical Directors can access administrative and clinical controls.
     """
     if not is_admin_email(user.email):
         raise HTTPException(
             status_code=403,
-            detail=f"Access Denied: Administrative authority is strictly restricted to {PRIMARY_ADMIN_EMAIL}."
+            detail="Access Denied: Administrative authority is strictly restricted to clinical leadership."
         )
     return user

@@ -440,7 +440,7 @@ async def test_fastapi_endpoints_end_to_end():
             headers={"Authorization": "Bearer demo-patient-token"}
         )
         assert forbidden_res.status_code == 403
-        assert "prannesshkva@gmail.com" in forbidden_res.json()["detail"]
+        assert "Access Denied" in forbidden_res.json()["detail"]
 
         # 8. Multi-turn Session Management & Context Endpoints
         session_id = f"test-sess-{uuid.uuid4()}"

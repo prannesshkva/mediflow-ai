@@ -25,7 +25,7 @@ import {
   Terminal,
 } from "lucide-react";
 import { adminApi, Escalation, AdminStats, HITLReviewItem } from "@/lib/api";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth, isUserAdmin } from "@/components/AuthProvider";
 import { format, parseISO } from "date-fns";
 
 const INITIAL_STATS: AdminStats = {
@@ -40,7 +40,7 @@ const INITIAL_STATS: AdminStats = {
 
 export default function AdminPage() {
   const { user, loading: authLoading } = useAuth();
-  const isAdmin = user?.email?.toLowerCase() === "prannesshkva@gmail.com";
+  const isAdmin = isUserAdmin(user?.email);
 
   const [activeTab, setActiveTab] = useState<"hitl" | "escalations" | "circuit" | "logs">("hitl");
   const [stats, setStats] = useState<AdminStats>(INITIAL_STATS);
@@ -185,7 +185,7 @@ export default function AdminPage() {
             Restricted Clinical Authority
           </h1>
           <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "28px" }}>
-            This command center governs Human-in-the-Loop emergency triage sign-offs, runtime circuit breakers, and protected clinical data. Access is strictly restricted to the Clinical Director (<code style={{ color: "#38BDF8", background: "#111827", padding: "2px 6px", borderRadius: "4px" }}>prannesshkva@gmail.com</code>).
+            This command center governs Human-in-the-Loop emergency triage sign-offs, runtime circuit breakers, and protected clinical data. Access is strictly restricted to authorized Clinical Leadership.
           </p>
 
           <Link
@@ -268,7 +268,7 @@ export default function AdminPage() {
               </span>
             </div>
             <div style={{ fontSize: "12.5px", color: "#94A3B8", marginTop: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>Director: <strong style={{ color: "#E2E8F0" }}>{user?.email || "prannesshkva@gmail.com"}</strong></span>
+              <span>Authority: <strong style={{ color: "#E2E8F0" }}>Clinical Director</strong></span>
               <span style={{ color: "#475569" }}>•</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#10B981", fontWeight: 600 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981" }} />

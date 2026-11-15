@@ -225,7 +225,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               onMouseOut={(e) => e.currentTarget.style.transform = "translateY(0)"}
             >
               <Stethoscope size={18} color="#0A0F1E" strokeWidth={2.5} />
-              Enter as Clinical Director (prannesshkva@gmail.com)
+              Enter as Clinical Director
             </button>
 
             {/* Patient Access */}

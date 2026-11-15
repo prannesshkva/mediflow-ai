@@ -28,7 +28,7 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { user, loading } = useAuth();
+  const { user, loading, logout } = useAuth();
 
   const handleSignIn = async () => {
     try {
@@ -40,9 +40,13 @@ export function Sidebar() {
 
   const handleSignOut = async () => {
     try {
-      await signOut(auth);
+      await logout();
     } catch (error) {
       console.error("Sign out failed", error);
+    }
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("mediflow_demo_auth");
+      window.location.href = "/";
     }
   };
 
@@ -194,10 +198,10 @@ export function Sidebar() {
               )}
               <div style={{ overflow: "hidden" }}>
                 <div style={{ fontSize: "12px", color: "var(--text-primary)", fontWeight: 600, whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                  {user.displayName}
+                  {user.displayName || (isUserAdmin(user?.email) ? "Clinical Director" : "Patient User")}
                 </div>
-                <div style={{ fontSize: "10px", color: "var(--text-secondary)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
-                  {user.email}
+                <div style={{ fontSize: "10px", color: isUserAdmin(user?.email) ? "#38BDF8" : "var(--text-secondary)", whiteSpace: "nowrap", textOverflow: "ellipsis", overflow: "hidden" }}>
+                  {isUserAdmin(user?.email) ? "Clinical Director" : "Patient Account"}
                 </div>
               </div>
             </div>
