@@ -241,6 +241,36 @@ class MockDatabase:
         filtered = [l for l in _mock_chat_logs if l.get("tenant_id", "tenant-default") == tenant_id]
         return list(reversed(filtered[-limit:]))
 
+    def get_session_messages(self, session_id: str) -> List[Dict]:
+        return [l for l in _mock_chat_logs if l.get("session_id") == session_id]
+
+    def get_sessions(self, tenant_id: str = "tenant-default") -> List[Dict]:
+        sessions_map = {}
+        for l in _mock_chat_logs:
+            if l.get("tenant_id", "tenant-default") == tenant_id:
+                sid = l.get("session_id", "default")
+                if sid not in sessions_map:
+                    sessions_map[sid] = {
+                        "session_id": sid,
+                        "title": l.get("query", "Clinical Consultation")[:45],
+                        "patient_name": l.get("patient_name", "Anonymous"),
+                        "last_message": l.get("response", "")[:80],
+                        "created_at": l.get("created_at"),
+                        "updated_at": l.get("created_at"),
+                        "message_count": 1,
+                    }
+                else:
+                    sessions_map[sid]["updated_at"] = l.get("created_at")
+                    sessions_map[sid]["message_count"] += 1
+                    sessions_map[sid]["last_message"] = l.get("response", "")[:80]
+        return sorted(list(sessions_map.values()), key=lambda x: x["updated_at"], reverse=True)
+
+    def delete_session(self, session_id: str) -> bool:
+        global _mock_chat_logs
+        initial_len = len(_mock_chat_logs)
+        _mock_chat_logs = [l for l in _mock_chat_logs if l.get("session_id") != session_id]
+        return len(_mock_chat_logs) < initial_len
+
     def get_chat_count_today(self, tenant_id: str = "tenant-default") -> int:
         return sum(1 for l in _mock_chat_logs if l.get("tenant_id", "tenant-default") == tenant_id)
 

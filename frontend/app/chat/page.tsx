@@ -1,10 +1,26 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { Bot, Send, User, AlertTriangle, RefreshCw, Sparkles, Activity, ShieldCheck, CheckCircle2 } from "lucide-react";
+import {
+  Bot,
+  Send,
+  User,
+  AlertTriangle,
+  RefreshCw,
+  Sparkles,
+  Activity,
+  ShieldCheck,
+  CheckCircle2,
+  Plus,
+  MessageSquare,
+  Trash2,
+  Clock,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { chatApi, ChatResponse, AgentTraceStep } from "@/lib/api";
+import { chatApi, ChatResponse, AgentTraceStep, ChatSession } from "@/lib/api";
 import { WorkflowTrace } from "@/components/chat/WorkflowTrace";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -23,35 +39,278 @@ interface Message {
   timestamp: Date;
 }
 
+interface SessionTab {
+  id: string;
+  title: string;
+  createdAt: string;
+  updatedAt: string;
+  messageCount: number;
+}
+
+const STORAGE_SESSIONS_KEY = "mediflow_chat_sessions_v3";
+const STORAGE_MESSAGES_KEY = "mediflow_chat_messages_map_v3";
+
 const SUGGESTED_QUERIES = [
-  "I want to book an appointment tomorrow",
-  "What are the clinic timings?",
-  "I have severe chest pain and arm numbness",
-  "How do I get my test results?",
-  "What insurance do you accept?",
-  "Can I reschedule my appointment?",
+  "I want to book an appointment with Dr. Priya Mehta tomorrow",
+  "What are the clinic timings and emergency contact?",
+  "I have severe chest pain and radiating arm numbness",
+  "How do I get my recent lab test results?",
+  "What insurance plans and TPAs do you accept?",
+  "Can I reschedule my appointment to next Monday?",
 ];
 
 export default function ChatPage() {
   const { user } = useAuth();
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [sessions, setSessions] = useState<SessionTab[]>([]);
+  const [activeSessionId, setActiveSessionId] = useState<string>("");
+  const [sessionMessagesMap, setSessionMessagesMap] = useState<Record<string, Message[]>>({});
+  const [showSessionsSidebar, setShowSessionsSidebar] = useState<boolean>(true);
+
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [liveTrace, setLiveTrace] = useState<AgentTraceStep[]>([]);
   const [showTrace, setShowTrace] = useState(true);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   const activePatientName = user?.displayName || (user as any)?.name || "Patient";
 
+  const activeMessages: Message[] = activeSessionId ? sessionMessagesMap[activeSessionId] || [] : [];
+  const activeSession = sessions.find((s) => s.id === activeSessionId);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(scrollToBottom, [messages, liveTrace]);
+  useEffect(scrollToBottom, [activeMessages, liveTrace]);
+
+  const persistToStorage = (updatedSessions: SessionTab[], updatedMap: Record<string, Message[]>) => {
+    try {
+      localStorage.setItem(STORAGE_SESSIONS_KEY, JSON.stringify(updatedSessions));
+      localStorage.setItem(STORAGE_MESSAGES_KEY, JSON.stringify(updatedMap));
+    } catch (e) {
+      console.warn("Storage quota exceeded or unavailable:", e);
+    }
+  };
+
+  // Initialize and synchronize sessions from localStorage and backend
+  useEffect(() => {
+    try {
+      const storedSessions = localStorage.getItem(STORAGE_SESSIONS_KEY);
+      const storedMap = localStorage.getItem(STORAGE_MESSAGES_KEY);
+
+      let initialSessions: SessionTab[] = [];
+      let initialMap: Record<string, Message[]> = {};
+
+      if (storedSessions && storedMap) {
+        initialSessions = JSON.parse(storedSessions);
+        const parsedMap = JSON.parse(storedMap);
+        Object.keys(parsedMap).forEach((sid) => {
+          initialMap[sid] = parsedMap[sid].map((m: any) => ({
+            ...m,
+            timestamp: new Date(m.timestamp),
+          }));
+        });
+      }
+
+      if (initialSessions.length === 0) {
+        const defaultId = `sess-${Date.now()}`;
+        initialSessions = [
+          {
+            id: defaultId,
+            title: "New Clinical Consultation",
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            messageCount: 0,
+          },
+        ];
+        initialMap[defaultId] = [];
+      }
+
+      setSessions(initialSessions);
+      setSessionMessagesMap(initialMap);
+      const initialActiveId = initialSessions[0].id;
+      setActiveSessionId(initialActiveId);
+
+      // Hydrate trace if the session already has messages
+      const msgs = initialMap[initialActiveId] || [];
+      const lastAi = msgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
+      if (lastAi?.trace) {
+        setLiveTrace(lastAi.trace);
+      }
+    } catch (e) {
+      console.error("Failed to load sessions from storage:", e);
+      const fallbackId = `sess-${Date.now()}`;
+      setSessions([
+        {
+          id: fallbackId,
+          title: "New Clinical Consultation",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+          messageCount: 0,
+        },
+      ]);
+      setActiveSessionId(fallbackId);
+    }
+
+    // Sync with backend session store
+    chatApi.getSessions()
+      .then((backendSessions) => {
+        if (backendSessions && backendSessions.length > 0) {
+          setSessions((prev) => {
+            const existingIds = new Set(prev.map((s) => s.id));
+            const newFromBackend: SessionTab[] = backendSessions
+              .filter((bs) => !existingIds.has(bs.session_id))
+              .map((bs) => ({
+                id: bs.session_id,
+                title: bs.title || "Clinical Session",
+                createdAt: bs.created_at || new Date().toISOString(),
+                updatedAt: bs.updated_at || new Date().toISOString(),
+                messageCount: bs.message_count || 1,
+              }));
+            if (newFromBackend.length > 0) {
+              return [...prev, ...newFromBackend];
+            }
+            return prev;
+          });
+        }
+      })
+      .catch(() => {
+        // Fallback silently if offline or demo mode
+      });
+  }, []);
+
+  const createNewSession = () => {
+    const newId = `sess-${Date.now()}`;
+    const newSession: SessionTab = {
+      id: newId,
+      title: "New Consultation",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+      messageCount: 0,
+    };
+    const updatedSessions = [newSession, ...sessions];
+    const updatedMap = { ...sessionMessagesMap, [newId]: [] };
+
+    setSessions(updatedSessions);
+    setSessionMessagesMap(updatedMap);
+    setActiveSessionId(newId);
+    setLiveTrace([]);
+    persistToStorage(updatedSessions, updatedMap);
+    setTimeout(() => inputRef.current?.focus(), 50);
+  };
+
+  const switchSession = async (sessionId: string) => {
+    if (sessionId === activeSessionId) return;
+    setActiveSessionId(sessionId);
+
+    // If messages are not present in local state, fetch from backend
+    if (!sessionMessagesMap[sessionId] || sessionMessagesMap[sessionId].length === 0) {
+      try {
+        const historyLogs = await chatApi.getSessionHistory(sessionId);
+        if (historyLogs && historyLogs.length > 0) {
+          const loadedMsgs: Message[] = [];
+          historyLogs.forEach((log: any) => {
+            if (log.query) {
+              loadedMsgs.push({
+                id: `u-${Date.now()}-${Math.random()}`,
+                role: "user",
+                content: log.query,
+                timestamp: new Date(log.created_at || Date.now()),
+              });
+            }
+            if (log.response) {
+              loadedMsgs.push({
+                id: `a-${Date.now()}-${Math.random()}`,
+                role: "ai",
+                content: log.response,
+                intent: log.intent,
+                risk_level: log.risk_level,
+                hitl_status: log.hitl_status,
+                trace: log.agent_trace,
+                rag_context_used: boolRAG(log.agent_trace),
+                timestamp: new Date(log.created_at || Date.now()),
+              });
+            }
+          });
+          const newMap = { ...sessionMessagesMap, [sessionId]: loadedMsgs };
+          setSessionMessagesMap(newMap);
+          persistToStorage(sessions, newMap);
+          if (loadedMsgs.length > 0 && loadedMsgs[loadedMsgs.length - 1].trace) {
+            setLiveTrace(loadedMsgs[loadedMsgs.length - 1].trace || []);
+          }
+          return;
+        }
+      } catch (err) {
+        console.error("Failed to load session history from backend:", err);
+      }
+    }
+
+    const msgs = sessionMessagesMap[sessionId] || [];
+    const lastAi = msgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
+    if (lastAi?.trace) {
+      setLiveTrace(lastAi.trace);
+    } else {
+      setLiveTrace([]);
+    }
+  };
+
+  const boolRAG = (trace?: AgentTraceStep[]) => {
+    if (!trace) return false;
+    const rag = trace.find((t) => t.agent.includes("RAG"));
+    return rag ? true : false;
+  };
+
+  const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const updatedSessions = sessions.filter((s) => s.id !== sessionId);
+    const updatedMap = { ...sessionMessagesMap };
+    delete updatedMap[sessionId];
+
+    if (updatedSessions.length === 0) {
+      const fallbackId = `sess-${Date.now()}`;
+      const fallbackSession: SessionTab = {
+        id: fallbackId,
+        title: "New Consultation",
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        messageCount: 0,
+      };
+      setSessions([fallbackSession]);
+      setSessionMessagesMap({ [fallbackId]: [] });
+      setActiveSessionId(fallbackId);
+      setLiveTrace([]);
+      persistToStorage([fallbackSession], { [fallbackId]: [] });
+    } else {
+      setSessions(updatedSessions);
+      setSessionMessagesMap(updatedMap);
+      if (activeSessionId === sessionId) {
+        const nextId = updatedSessions[0].id;
+        setActiveSessionId(nextId);
+        const nextMsgs = updatedMap[nextId] || [];
+        const lastAi = nextMsgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
+        setLiveTrace(lastAi?.trace || []);
+      }
+      persistToStorage(updatedSessions, updatedMap);
+    }
+
+    try {
+      await chatApi.deleteSession(sessionId);
+    } catch {
+      // Ignored
+    }
+  };
 
   const sendMessage = async (query: string) => {
-    if (!query.trim() || isLoading) return;
+    if (!query.trim() || isLoading || !activeSessionId) return;
+
+    // 1. Build conversational history array partitioned by the active session tab
+    const currentMsgs = sessionMessagesMap[activeSessionId] || [];
+    const conversationHistory = currentMsgs.map((m) => ({
+      role: m.role === "user" ? "user" : "assistant",
+      content: m.content,
+    }));
 
     const userMsg: Message = {
       id: `u-${Date.now()}`,
@@ -60,7 +319,9 @@ export default function ChatPage() {
       timestamp: new Date(),
     };
 
-    setMessages((prev) => [...prev, userMsg]);
+    const msgsWithUser = [...currentMsgs, userMsg];
+    const mapWithUser = { ...sessionMessagesMap, [activeSessionId]: msgsWithUser };
+    setSessionMessagesMap(mapWithUser);
     setInput("");
     setIsLoading(true);
     setLiveTrace([]);
@@ -75,18 +336,25 @@ export default function ChatPage() {
     ];
 
     try {
-      const promise = chatApi.send(query, activePatientName);
+      // Send with session_id and multi-turn conversational history
+      const promise = chatApi.send(
+        query,
+        activePatientName,
+        "tenant-default",
+        activeSessionId,
+        conversationHistory
+      );
 
-      // Progressive simulation of agent trace while network request completes
+      // Progressive simulation of agent trace while backend processes
       for (let i = 0; i < agentNames.length - 1; i++) {
-        await new Promise((r) => setTimeout(r, 150));
+        await new Promise((r) => setTimeout(r, 140));
         setLiveTrace((prev) => [
           ...prev,
           {
             agent: agentNames[i],
             status: "completed",
             output: { status: "processed" },
-            duration_ms: Math.floor(Math.random() * 80) + 20,
+            duration_ms: Math.floor(Math.random() * 70) + 25,
           },
         ]);
       }
@@ -108,7 +376,27 @@ export default function ChatPage() {
         rag_context_used: response.rag_context_used,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, aiMsg]);
+
+      const finalMsgs = [...msgsWithUser, aiMsg];
+      const finalMap = { ...sessionMessagesMap, [activeSessionId]: finalMsgs };
+      setSessionMessagesMap(finalMap);
+
+      // Update session title (if first turn or default title) and message count
+      const updatedSessions = sessions.map((s) => {
+        if (s.id === activeSessionId) {
+          const isInitial = s.messageCount === 0 || s.title.startsWith("New");
+          return {
+            ...s,
+            title: isInitial ? (query.length > 34 ? query.slice(0, 34) + "..." : query) : s.title,
+            updatedAt: new Date().toISOString(),
+            messageCount: finalMsgs.length,
+          };
+        }
+        return s;
+      });
+
+      setSessions(updatedSessions);
+      persistToStorage(updatedSessions, finalMap);
     } catch (err: any) {
       console.error("API Error details:", err);
       const fallbackTrace = agentNames.map((name) => ({
@@ -130,7 +418,11 @@ export default function ChatPage() {
         rag_context_used: false,
         timestamp: new Date(),
       };
-      setMessages((prev) => [...prev, aiMsg]);
+
+      const finalMsgs = [...msgsWithUser, aiMsg];
+      const finalMap = { ...sessionMessagesMap, [activeSessionId]: finalMsgs };
+      setSessionMessagesMap(finalMap);
+      persistToStorage(sessions, finalMap);
     } finally {
       setIsLoading(false);
     }
@@ -143,9 +435,19 @@ export default function ChatPage() {
     }
   };
 
-  const clearChat = () => {
-    setMessages([]);
+  const clearCurrentSessionChat = () => {
+    if (!activeSessionId) return;
+    const finalMap = { ...sessionMessagesMap, [activeSessionId]: [] };
+    setSessionMessagesMap(finalMap);
     setLiveTrace([]);
+    const updatedSessions = sessions.map((s) => {
+      if (s.id === activeSessionId) {
+        return { ...s, messageCount: 0, updatedAt: new Date().toISOString() };
+      }
+      return s;
+    });
+    setSessions(updatedSessions);
+    persistToStorage(updatedSessions, finalMap);
   };
 
   const formatTime = (d: Date) => {
@@ -154,7 +456,203 @@ export default function ChatPage() {
 
   return (
     <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#060A12" }}>
-      {/* Main Conversation Column */}
+      
+      {/* ------------------------------------------------------------- */}
+      {/* 1. Left Session Tabs Sidebar (Slack / Clinical Production)    */}
+      {/* ------------------------------------------------------------- */}
+      {showSessionsSidebar ? (
+        <div
+          style={{
+            width: "270px",
+            minWidth: "270px",
+            background: "#080D18",
+            borderRight: "1px solid #1E293B",
+            display: "flex",
+            flexDirection: "column",
+            height: "100%",
+            zIndex: 10,
+          }}
+        >
+          {/* Sidebar Top: Header + New Session CTA */}
+          <div style={{ padding: "16px 14px", borderBottom: "1px solid #1E293B" }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
+              <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", letterSpacing: "0.6px", textTransform: "uppercase" }}>
+                Consultation Tabs
+              </span>
+              <button
+                onClick={() => setShowSessionsSidebar(false)}
+                title="Collapse Session Tabs"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#64748B",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  padding: "4px",
+                  borderRadius: "4px",
+                }}
+              >
+                <PanelLeftClose size={16} />
+              </button>
+            </div>
+
+            <button
+              onClick={createNewSession}
+              style={{
+                width: "100%",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "8px",
+                padding: "9px 12px",
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+                border: "none",
+                color: "#FFFFFF",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                boxShadow: "0 2px 8px rgba(37, 99, 235, 0.3)",
+                transition: "all 0.15s ease",
+              }}
+            >
+              <Plus size={16} strokeWidth={2.5} />
+              <span>New Consultation</span>
+            </button>
+          </div>
+
+          {/* Session List */}
+          <div
+            style={{
+              flex: 1,
+              overflowY: "auto",
+              padding: "10px 8px",
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+            }}
+          >
+            {sessions.map((sess) => {
+              const isActive = sess.id === activeSessionId;
+              return (
+                <div
+                  key={sess.id}
+                  onClick={() => switchSession(sess.id)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "10px 12px",
+                    borderRadius: "8px",
+                    background: isActive ? "#111A2E" : "transparent",
+                    border: isActive ? "1px solid #1E3A8A" : "1px solid transparent",
+                    borderLeft: isActive ? "3px solid #38BDF8" : "1px solid transparent",
+                    cursor: "pointer",
+                    transition: "all 0.12s ease",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.background = "#0D1424";
+                      (e.currentTarget as HTMLElement).style.borderColor = "#1B283E";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (!isActive) {
+                      (e.currentTarget as HTMLElement).style.background = "transparent";
+                      (e.currentTarget as HTMLElement).style.borderColor = "transparent";
+                    }
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
+                    <MessageSquare
+                      size={15}
+                      color={isActive ? "#38BDF8" : "#64748B"}
+                      style={{ flexShrink: 0 }}
+                    />
+                    <div style={{ minWidth: 0, flex: 1 }}>
+                      <div
+                        style={{
+                          fontSize: "13px",
+                          fontWeight: isActive ? 600 : 500,
+                          color: isActive ? "#F8FAFC" : "#94A3B8",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {sess.title}
+                      </div>
+                      <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
+                        <span>{sess.messageCount} msg{sess.messageCount === 1 ? "" : "s"}</span>
+                        <span>•</span>
+                        <span>{new Date(sess.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={(e) => deleteSession(sess.id, e)}
+                    title="Delete session"
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      color: "#64748B",
+                      cursor: "pointer",
+                      padding: "4px",
+                      borderRadius: "4px",
+                      opacity: isActive ? 0.9 : 0.4,
+                      display: "flex",
+                      alignItems: "center",
+                    }}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLElement).style.color = "#EF4444";
+                      (e.currentTarget as HTMLElement).style.opacity = "1";
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLElement).style.color = "#64748B";
+                      (e.currentTarget as HTMLElement).style.opacity = isActive ? "0.9" : "0.4";
+                    }}
+                  >
+                    <Trash2 size={13} />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Sidebar Footer: Session Partition Guarantee */}
+          <div style={{ padding: "12px 14px", borderTop: "1px solid #1E293B", fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "6px" }}>
+            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} />
+            <span>Multi-turn Memory Active</span>
+          </div>
+        </div>
+      ) : (
+        <button
+          onClick={() => setShowSessionsSidebar(true)}
+          title="Open Consultation Tabs"
+          style={{
+            position: "absolute",
+            top: "16px",
+            left: "16px",
+            zIndex: 30,
+            background: "#101827",
+            border: "1px solid #1E293B",
+            borderRadius: "8px",
+            color: "#94A3B8",
+            padding: "8px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+          }}
+        >
+          <PanelLeft size={16} />
+        </button>
+      )}
+
+      {/* ------------------------------------------------------------- */}
+      {/* 2. Main Conversation Stream                                  */}
+      {/* ------------------------------------------------------------- */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
         
         {/* Slack-style Channel Header */}
@@ -188,24 +686,24 @@ export default function ChatPage() {
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                 <span style={{ fontSize: "15px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
-                  MediFlow Clinical Intelligence
+                  {activeSession?.title || "Clinical Intelligence"}
                 </span>
                 <span style={{
-                  fontSize: "10.5px",
-                  padding: "2px 8px",
-                  borderRadius: "6px",
+                  fontSize: "10px",
+                  padding: "2px 7px",
+                  borderRadius: "5px",
                   background: "rgba(59, 130, 246, 0.15)",
                   color: "#60A5FA",
                   fontWeight: 700,
                   border: "1px solid rgba(59, 130, 246, 0.25)",
                   letterSpacing: "0.5px",
                 }}>
-                  METRO HEALTH CLINIC
+                  SESSION {activeSessionId.slice(0, 9)}
                 </span>
               </div>
               <div style={{ fontSize: "12px", color: "#94A3B8", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", display: "inline-block", boxShadow: "0 0 6px #10B981" }} />
-                <span>AI Triage Active</span>
+                <span>Multi-turn Context Synced</span>
                 <span style={{ color: "#475569" }}>•</span>
                 <span>Groq <code style={{ fontSize: "11px", background: "#131E31", padding: "1px 5px", borderRadius: "4px", color: "#38BDF8" }}>openai/gpt-oss-120b</code></span>
                 <span style={{ color: "#475569" }}>•</span>
@@ -253,10 +751,10 @@ export default function ChatPage() {
               {showTrace ? "Hide Pipeline" : "Show Pipeline"}
             </button>
 
-            {messages.length > 0 && (
+            {activeMessages.length > 0 && (
               <button
-                onClick={clearChat}
-                title="Clear Conversation"
+                onClick={clearCurrentSessionChat}
+                title="Clear Current Session"
                 style={{
                   padding: "7px 10px",
                   background: "#101827",
@@ -285,7 +783,7 @@ export default function ChatPage() {
             gap: "20px",
           }}
         >
-          {messages.length === 0 && (
+          {activeMessages.length === 0 && (
             <div style={{ textAlign: "center", paddingTop: "60px", maxWidth: "620px", margin: "0 auto" }}>
               <div
                 style={{
@@ -304,11 +802,11 @@ export default function ChatPage() {
                 <Sparkles size={28} color="#38BDF8" />
               </div>
               <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#F8FAFC", marginBottom: "8px", letterSpacing: "-0.015em" }}>
-                MediFlow Clinical Operations & Triage
+                MediFlow Clinical Consultation
               </h2>
               <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "32px" }}>
                 Autonomous multi-agent clinical decision support with licensed clinician oversight.
-                Ask about appointment scheduling, symptom triage, medication rules, or clinic guidelines.
+                Ask follow-up questions freely — your session conversation context is automatically preserved.
               </p>
 
               <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
@@ -345,7 +843,7 @@ export default function ChatPage() {
             </div>
           )}
 
-          {messages.map((msg) => (
+          {activeMessages.map((msg) => (
             <div
               key={msg.id}
               style={{
@@ -482,7 +980,7 @@ export default function ChatPage() {
                       </div>
                     </div>
 
-                    {/* Slack-style Metadata Pills */}
+                    {/* Metadata Pills */}
                     <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}>
                       {msg.intent && (
                         <span style={{
@@ -588,7 +1086,7 @@ export default function ChatPage() {
                   <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
                 </div>
                 <span style={{ fontSize: "13px", color: "#94A3B8" }}>
-                  Executing LangGraph multi-agent clinical pipeline...
+                  Processing clinical pipeline with Groq <code>openai/gpt-oss-120b</code>...
                 </span>
               </div>
             </div>
@@ -624,7 +1122,7 @@ export default function ChatPage() {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="Ask about clinical symptoms, appointments, test results, or medications..."
+              placeholder="Ask a question or follow up on your previous query..."
               disabled={isLoading}
               style={{
                 flex: 1,
@@ -660,12 +1158,14 @@ export default function ChatPage() {
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11.5px", color: "#64748B", marginTop: "8px", padding: "0 4px" }}>
             <span>Press <kbd style={{ background: "#1E293B", padding: "1px 5px", borderRadius: "3px", color: "#94A3B8" }}>Enter ↵</kbd> to send</span>
-            <span>MediFlow AI • Clinical Governance & HITL Safety Enforced</span>
+            <span>Session: {activeSessionId} • Multi-turn Continuity Enforced</span>
           </div>
         </div>
       </div>
 
-      {/* Right Pipeline Inspection Drawer */}
+      {/* ------------------------------------------------------------- */}
+      {/* 3. Right Pipeline Inspection Drawer (LangGraph Agent Trace)   */}
+      {/* ------------------------------------------------------------- */}
       {showTrace && (
         <div
           style={{
@@ -687,11 +1187,11 @@ export default function ChatPage() {
           </div>
 
           <WorkflowTrace
-            steps={isLoading ? liveTrace : (messages[messages.length - 1]?.trace || liveTrace)}
+            steps={isLoading ? liveTrace : (activeMessages[activeMessages.length - 1]?.trace || liveTrace)}
             isLoading={isLoading}
           />
 
-          {!isLoading && messages.length > 0 && (
+          {!isLoading && activeMessages.length > 0 && (
             <div style={{ marginTop: "20px", padding: "12px", borderRadius: "8px", background: "#0D1424", border: "1px solid #1B2639", fontSize: "12px", color: "#94A3B8", lineHeight: 1.5 }}>
               Deterministic state partition: state transferred across classification, safety gate, retrieval, and response subgraphs.
             </div>

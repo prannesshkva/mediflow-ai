@@ -11,6 +11,7 @@ Validates:
 
 import pytest
 import asyncio
+import uuid
 from httpx import AsyncClient, ASGITransport
 
 from app.main import app
@@ -432,3 +433,43 @@ async def test_fastapi_endpoints_end_to_end():
         assert reset_res.status_code == 200
         assert reset_res.json()["message"] == "Circuit breaker reset to CLOSED"
         assert reset_res.json()["status"]["state"] == "CLOSED"
+
+        # 8. Multi-turn Session Management & Context Endpoints
+        session_id = f"test-sess-{uuid.uuid4()}"
+        turn1_res = await client.post("/chat", json={
+            "query": "I would like to see Dr. Priya Mehta tomorrow morning.",
+            "patient_name": "Arjun Patel",
+            "session_id": session_id,
+            "tenant_id": "tenant-fastapi-test",
+        })
+        assert turn1_res.status_code == 200
+        turn1_text = turn1_res.json()["response"]
+
+        # Follow-up query passing conversation history
+        turn2_res = await client.post("/chat", json={
+            "query": "Can we reschedule that to 4 PM instead?",
+            "patient_name": "Arjun Patel",
+            "session_id": session_id,
+            "tenant_id": "tenant-fastapi-test",
+            "history": [
+                {"role": "user", "content": "I would like to see Dr. Priya Mehta tomorrow morning."},
+                {"role": "assistant", "content": turn1_text},
+            ],
+        })
+        assert turn2_res.status_code == 200
+
+        # Verify session listing
+        sessions_res = await client.get("/chat/sessions?tenant_id=tenant-fastapi-test")
+        assert sessions_res.status_code == 200
+        sessions = sessions_res.json()
+        assert any(s["session_id"] == session_id for s in sessions)
+
+        # Verify session message retrieval
+        history_res = await client.get(f"/chat/sessions/{session_id}")
+        assert history_res.status_code == 200
+        assert len(history_res.json()) >= 2
+
+        # Verify session deletion
+        del_res = await client.delete(f"/chat/sessions/{session_id}")
+        assert del_res.status_code == 200
+        assert del_res.json()["success"] is True

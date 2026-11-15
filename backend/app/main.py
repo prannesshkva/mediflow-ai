@@ -1,6 +1,18 @@
 
 
 import os
+from pathlib import Path
+from dotenv import load_dotenv
+
+for candidate in [
+    Path.cwd() / "backend" / ".env",
+    Path.cwd() / ".env",
+    Path(__file__).resolve().parent.parent / ".env",
+]:
+    if candidate.exists():
+        load_dotenv(dotenv_path=candidate)
+        break
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse

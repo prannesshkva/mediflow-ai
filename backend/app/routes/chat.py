@@ -1,5 +1,7 @@
-from fastapi import APIRouter, Depends
+from typing import List, Optional, Dict, Any
+from fastapi import APIRouter, Depends, HTTPException
 from app.database.models import ChatRequest, ChatResponse, AgentTraceStep
+from app.database.supabase import db
 from app.graph.workflow import run_workflow
 from app.auth import get_current_user, User
 from app.core.circuit_breaker import get_circuit_breaker
@@ -17,6 +19,7 @@ async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
         user_id=user.uid,
         session_id=request.session_id,
         tenant_id=tenant_id,
+        history=request.history,
     )
 
     trace = [
@@ -44,3 +47,29 @@ async def chat(request: ChatRequest, user: User = Depends(get_current_user)):
         rag_context_used=bool(result.get("rag_context")),
         circuit_breaker_status=result.get("circuit_breaker_status", get_circuit_breaker().state.value),
     )
+
+@router.get("/chat/sessions", response_model=List[Dict[str, Any]])
+async def list_chat_sessions(
+    tenant_id: str = "tenant-default",
+    user: User = Depends(get_current_user),
+):
+    """Retrieves all active multi-turn chat sessions for the tenant."""
+    t_id = tenant_id or getattr(user, "tenant_id", "tenant-default")
+    return db.get_sessions(tenant_id=t_id)
+
+@router.get("/chat/sessions/{session_id}", response_model=List[Dict[str, Any]])
+async def get_session_history(
+    session_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Retrieves full conversation history for a specific session."""
+    return db.get_session_messages(session_id=session_id)
+
+@router.delete("/chat/sessions/{session_id}")
+async def delete_chat_session(
+    session_id: str,
+    user: User = Depends(get_current_user),
+):
+    """Deletes a chat session and its associated conversation turns."""
+    deleted = db.delete_session(session_id)
+    return {"success": True, "session_id": session_id, "deleted": deleted}

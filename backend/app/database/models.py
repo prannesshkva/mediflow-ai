@@ -25,6 +25,7 @@ class ChatRequest(BaseModel):
     patient_name: Optional[str] = "Anonymous"
     session_id: Optional[str] = Field(default_factory=lambda: str(uuid.uuid4()))
     tenant_id: Optional[str] = "tenant-default"
+    history: Optional[List[Dict[str, str]]] = None
 
 class AgentTraceStep(BaseModel):
     agent: str

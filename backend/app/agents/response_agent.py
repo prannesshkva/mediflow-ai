@@ -5,6 +5,18 @@ import time
 import random
 from typing import List, Optional, Dict, Tuple
 from datetime import datetime
+from pathlib import Path
+from dotenv import load_dotenv
+
+for candidate in [
+    Path.cwd() / "backend" / ".env",
+    Path.cwd() / ".env",
+    Path(__file__).resolve().parent.parent.parent / ".env",
+    Path(__file__).resolve().parent.parent / ".env",
+]:
+    if candidate.exists():
+        load_dotenv(dotenv_path=candidate)
+        break
 
 def _format_appointment_response(appointment_data: Dict) -> str:
     if not appointment_data:
@@ -124,6 +136,7 @@ def _groq_response(
     context: List[str],
     risk_level: str,
     appointment_data: Optional[Dict],
+    history: Optional[List[Dict[str, str]]] = None,
 ) -> str:
     try:
         from groq import Groq
@@ -152,19 +165,37 @@ Generate a helpful, empathetic, patient-friendly response in clean markdown.
 - Keep response concise but medically complete
 - If appointment was booked or referenced, include key confirmation details."""
 
+        messages: List[Dict[str, str]] = [
+            {
+                "role": "system",
+                "content": (
+                    "You are MediFlow AI, an evidence-grounded clinical operations assistant. "
+                    "You maintain context across follow-up queries within the consultation session. "
+                    "Reference previous discussion details, requested dates, doctor specialties, or symptoms when appropriate, "
+                    "and provide clear, structured markdown responses."
+                ),
+            }
+        ]
+
+        if history:
+            for turn in history[-8:]:
+                r = turn.get("role", "user")
+                c = turn.get("content", "")
+                if r in ("user", "assistant") and c:
+                    messages.append({"role": r, "content": c})
+
+        messages.append({"role": "user", "content": prompt})
+
         completion = client.chat.completions.create(
             model=model_name,
-            messages=[
-                {"role": "system", "content": "You are MediFlow AI, an evidence-grounded clinical operations assistant."},
-                {"role": "user", "content": prompt},
-            ],
+            messages=messages,
             temperature=0.2,
             max_tokens=600,
         )
         return completion.choices[0].message.content.strip()
     except Exception as e:
         if os.getenv("GEMINI_API_KEY"):
-            return _gemini_response(query, intent, context, risk_level, appointment_data)
+            return _gemini_response(query, intent, context, risk_level, appointment_data, history)
         return _template_response(query, intent, context, appointment_data)
 
 def _gemini_response(
@@ -173,6 +204,7 @@ def _gemini_response(
     context: List[str],
     risk_level: str,
     appointment_data: Optional[Dict],
+    history: Optional[List[Dict[str, str]]] = None,
 ) -> str:
     try:
         import google.generativeai as genai
@@ -183,8 +215,19 @@ def _gemini_response(
         if appointment_data:
             appt_info = f"\nAppointment Action Taken: {appointment_data}\n"
 
-        prompt = f"""You are MediFlow AI, a friendly and professional healthcare operations assistant for a clinic.
+        history_context = ""
+        if history:
+            h_lines = []
+            for h in history[-8:]:
+                role_label = "Patient" if h.get("role") == "user" else "MediFlow Assistant"
+                c = h.get("content", "").strip()
+                if c:
+                    h_lines.append(f"{role_label}: {c}")
+            if h_lines:
+                history_context = "\nPrevious Conversation Context in this Session:\n" + "\n".join(h_lines) + "\n"
 
+        prompt = f"""You are MediFlow AI, a friendly and professional healthcare operations assistant for a clinic.
+{history_context}
 Patient Query: "{query}"
 Intent: {intent}
 Risk Level: {risk_level}
@@ -211,14 +254,15 @@ def run_response_agent(
     context: List[str],
     risk_level: str,
     appointment_data: Optional[Dict],
+    history: Optional[List[Dict[str, str]]] = None,
 ) -> Tuple[str, int]:
 
     start = time.time()
 
     if os.getenv("GROQ_API_KEY"):
-        response = _groq_response(query, intent, context, risk_level, appointment_data)
+        response = _groq_response(query, intent, context, risk_level, appointment_data, history)
     elif os.getenv("GEMINI_API_KEY"):
-        response = _gemini_response(query, intent, context, risk_level, appointment_data)
+        response = _gemini_response(query, intent, context, risk_level, appointment_data, history)
     else:
         time.sleep(random.uniform(0.10, 0.25))
         response = _template_response(query, intent, context, appointment_data)

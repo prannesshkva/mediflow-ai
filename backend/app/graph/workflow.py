@@ -19,6 +19,7 @@ class WorkflowState(TypedDict):
     patient_name: str
     user_id: str
     session_id: str
+    history: Optional[List[Dict[str, str]]]
 
     intent: Optional[str]
     risk_level: Optional[str]
@@ -170,6 +171,7 @@ def response_node(state: WorkflowState) -> WorkflowState:
         context=state["rag_context"] or [],
         risk_level=state["risk_level"],
         appointment_data=state["appointment_data"],
+        history=state.get("history"),
     )
     state["response_draft"] = response_draft
     state["agent_trace"].append({
@@ -282,8 +284,23 @@ def run_workflow(
     user_id: str = "anon-user",
     session_id: Optional[str] = None,
     tenant_id: str = "tenant-default",
+    history: Optional[List[Dict[str, str]]] = None,
 ) -> WorkflowState:
     sess = session_id or str(uuid.uuid4())
+
+    turn_history = history
+    if turn_history is None:
+        turn_history = []
+        try:
+            past_logs = db.get_session_messages(sess)
+            for l in past_logs[-8:]:
+                if l.get("query"):
+                    turn_history.append({"role": "user", "content": l["query"]})
+                if l.get("response"):
+                    turn_history.append({"role": "assistant", "content": l["response"]})
+        except Exception:
+            pass
+
     initial_state: WorkflowState = {
         "tenant_id": tenant_id,
         "clinic_name": "Metro Health Clinic",
@@ -291,6 +308,7 @@ def run_workflow(
         "patient_name": patient_name,
         "user_id": user_id,
         "session_id": sess,
+        "history": turn_history,
         "intent": None,
         "risk_level": None,
         "escalate": False,

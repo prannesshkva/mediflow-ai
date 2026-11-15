@@ -57,6 +57,21 @@ export interface ChatResponse {
   circuit_breaker_status?: string;
 }
 
+export interface ChatSession {
+  session_id: string;
+  title: string;
+  patient_name?: string;
+  last_message?: string;
+  created_at: string;
+  updated_at: string;
+  message_count: number;
+}
+
+export interface ChatMessageTurn {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface HITLReviewItem {
   id: string;
   tenant_id?: string;
@@ -159,12 +174,32 @@ export interface Report {
 }
 
 export const chatApi = {
-  send: async (query: string, patientName = "Anonymous", tenantId = "tenant-default") => {
+  send: async (
+    query: string,
+    patientName = "Anonymous",
+    tenantId = "tenant-default",
+    sessionId?: string,
+    history?: { role: string; content: string }[]
+  ) => {
     const res = await api.post<ChatResponse>("/chat", {
       query,
       patient_name: patientName,
       tenant_id: tenantId,
+      session_id: sessionId,
+      history,
     });
+    return res.data;
+  },
+  getSessions: async (tenantId = "tenant-default"): Promise<ChatSession[]> => {
+    const res = await api.get<ChatSession[]>(`/chat/sessions?tenant_id=${tenantId}`);
+    return res.data;
+  },
+  getSessionHistory: async (sessionId: string): Promise<any[]> => {
+    const res = await api.get(`/chat/sessions/${sessionId}`);
+    return res.data;
+  },
+  deleteSession: async (sessionId: string) => {
+    const res = await api.delete(`/chat/sessions/${sessionId}`);
     return res.data;
   },
 };
