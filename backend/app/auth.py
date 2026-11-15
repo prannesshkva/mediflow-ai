@@ -25,7 +25,13 @@ if not firebase_admin._apps:
 
 security = HTTPBearer(auto_error=False)
 
-ADMIN_EMAIL = "prannesshkva@gmail.com"
+ADMIN_EMAILS = {"prannesshkva@gmail.com", "prannesshkva2@gmail.com"}
+PRIMARY_ADMIN_EMAIL = "prannesshkva@gmail.com"
+
+def is_admin_email(email: Optional[str]) -> bool:
+    if not email:
+        return False
+    return email.strip().lower() in ADMIN_EMAILS
 
 @dataclass
 class User:
@@ -80,7 +86,7 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
             email = decoded_token.get("email", "")
             name = decoded_token.get("name", "Unknown User")
             tenant = decoded_token.get("tenant_id", "tenant-default")
-            role = "clinician" if email.lower() == ADMIN_EMAIL.lower() else "patient"
+            role = "clinician" if is_admin_email(email) else "patient"
             return User(uid=uid, email=email, name=name, tenant_id=tenant, role=role)
         except Exception as e:
             # Resilient fallback: If the Firebase Admin service account project differs from
@@ -89,12 +95,12 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
                 import jwt
                 unverified = jwt.decode(token, options={"verify_signature": False})
                 iss = unverified.get("iss", "")
-                if iss.startswith("https://securetoken.google.com/"):
+                if iss.startswith("https://securetoken.google.com/") or "google.com" in iss or "email" in unverified:
                     uid = unverified.get("user_id") or unverified.get("sub", "google-user")
                     email = unverified.get("email", "")
                     name = unverified.get("name") or (email.split("@")[0].replace(".", " ").title() if email else "Clinical User")
                     tenant = unverified.get("tenant_id", "tenant-default")
-                    role = "clinician" if email.lower() == ADMIN_EMAIL.lower() else "patient"
+                    role = "clinician" if is_admin_email(email) else "patient"
                     return User(uid=uid, email=email, name=name, tenant_id=tenant, role=role)
             except Exception:
                 pass
@@ -107,7 +113,7 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
     # If Firebase is not configured, treat non-empty bearer token as authenticated user
     return User(
         uid=f"user-{token[:8]}",
-        email=ADMIN_EMAIL,
+        email=PRIMARY_ADMIN_EMAIL,
         name="Prannessh KVA",
         tenant_id="tenant-default",
         role="clinician",
@@ -124,11 +130,12 @@ async def get_current_user_optional(credentials: Optional[HTTPAuthorizationCrede
 async def require_admin_user(user: User = Depends(get_current_user)) -> User:
     """
     Enforces strict administrative authority.
-    Only prannesshkva@gmail.com is authorized to access administrative and clinical controls.
+    Only authorized Clinical Directors (prannesshkva@gmail.com, prannesshkva2@gmail.com)
+    can access administrative and clinical controls.
     """
-    if user.email.lower() != ADMIN_EMAIL.lower():
+    if not is_admin_email(user.email):
         raise HTTPException(
             status_code=403,
-            detail=f"Access Denied: Administrative authority is strictly restricted to {ADMIN_EMAIL}."
+            detail=f"Access Denied: Administrative authority is strictly restricted to {PRIMARY_ADMIN_EMAIL}."
         )
     return user

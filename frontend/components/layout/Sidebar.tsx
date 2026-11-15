@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth, isUserAdmin } from "@/components/AuthProvider";
 import { auth, googleProvider } from "@/lib/firebase";
 import { signInWithPopup, signOut } from "firebase/auth";
 import {
@@ -130,8 +130,8 @@ export function Sidebar() {
           })}
       </div>
 
-      {/* Admin Section — STRICTLY AUTHORIZED FOR prannesshkva@gmail.com ALONE */}
-      {user?.email?.toLowerCase() === "prannesshkva@gmail.com" && (
+      {/* Admin Section — STRICTLY AUTHORIZED FOR CLINICAL DIRECTORS */}
+      {isUserAdmin(user?.email) && (
         <div style={{ marginTop: "16px", paddingTop: "12px", borderTop: "1px solid rgba(255, 255, 255, 0.06)" }}>
           <div
             style={{

@@ -6,6 +6,12 @@ import { auth, googleProvider } from "@/lib/firebase";
 import { Heart, LogIn, UserCheck, Stethoscope } from "lucide-react";
 
 export const ADMIN_EMAIL = "prannesshkva@gmail.com";
+export const ADMIN_EMAILS = ["prannesshkva@gmail.com", "prannesshkva2@gmail.com"];
+
+export function isUserAdmin(email?: string | null): boolean {
+  if (!email) return false;
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim());
+}
 
 export interface DemoUser {
   uid: string;
@@ -282,7 +288,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
   }
 
-  const isAdmin = Boolean(user?.email && user.email.toLowerCase() === ADMIN_EMAIL.toLowerCase());
+  const isAdmin = Boolean(user?.email && isUserAdmin(user.email));
 
   return (
     <AuthContext.Provider value={{

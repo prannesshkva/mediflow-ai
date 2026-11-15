@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Bot, Calendar, Activity, AlertTriangle, FileText, ArrowRight, Heart, Clock, CheckCircle, ShieldCheck } from "lucide-react";
-import { useAuth } from "@/components/AuthProvider";
+import { useAuth, isUserAdmin } from "@/components/AuthProvider";
 
 const baseQuickActions = [
   {
@@ -62,7 +62,7 @@ const agents = [
 
 export default function HomePage() {
   const { user } = useAuth();
-  const isAdmin = user?.email?.toLowerCase() === "prannesshkva@gmail.com";
+  const isAdmin = isUserAdmin(user?.email);
   const quickActions = isAdmin ? [...baseQuickActions, adminAction] : baseQuickActions;
   return (
     <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto" }}>

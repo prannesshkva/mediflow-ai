@@ -268,7 +268,7 @@ export default function AdminPage() {
               </span>
             </div>
             <div style={{ fontSize: "12.5px", color: "#94A3B8", marginTop: "3px", display: "flex", alignItems: "center", gap: "8px" }}>
-              <span>Director: <strong style={{ color: "#E2E8F0" }}>prannesshkva@gmail.com</strong></span>
+              <span>Director: <strong style={{ color: "#E2E8F0" }}>{user?.email || "prannesshkva@gmail.com"}</strong></span>
               <span style={{ color: "#475569" }}>•</span>
               <span style={{ display: "inline-flex", alignItems: "center", gap: "5px", color: "#10B981", fontWeight: 600 }}>
                 <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", boxShadow: "0 0 8px #10B981" }} />
