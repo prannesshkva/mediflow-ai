@@ -26,7 +26,7 @@ export function AtlassianFooter() {
             </Link>
 
             <p className="mt-3 text-xs text-[#626F86] max-w-sm leading-relaxed">
-              Clinical Intelligence and Multi-Agent Triage Platform with deterministic Human-in-the-Loop (HITL) oversight and PostgreSQL Row-Level Security.
+              Clinical Intelligence and Triage Platform with licensed physician oversight, real-time diagnostic telemetry, and hospital-grade patient privacy.
             </p>
 
             <div className="mt-4 flex items-center gap-2 text-xs text-[#22A06B] font-semibold">
@@ -67,20 +67,20 @@ export function AtlassianFooter() {
           {/* Clinical AI */}
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-[#091E42] mb-3">
-              Clinical AI
+              Clinical Intelligence
             </div>
             <ul className="space-y-2 text-xs">
               <li>
-                <span className="text-[#626F86]">LangGraph Multi-Agent</span>
+                <span className="text-[#626F86]">Doctor-Supervised AI</span>
               </li>
               <li>
-                <span className="text-[#626F86]">Pinecone Semantic RAG</span>
+                <span className="text-[#626F86]">Medical Guidelines Library</span>
               </li>
               <li>
-                <span className="text-[#626F86]">Contraindication Guard</span>
+                <span className="text-[#626F86]">Medication Safety Guard</span>
               </li>
               <li>
-                <span className="text-[#626F86]">Pydantic v2 Schemas</span>
+                <span className="text-[#626F86]">Structured Patient Charts</span>
               </li>
             </ul>
           </div>

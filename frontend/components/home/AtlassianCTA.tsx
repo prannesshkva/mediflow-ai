@@ -51,7 +51,7 @@ export function AtlassianCTA() {
 
         <div className="mt-8 flex items-center justify-center gap-2 text-xs text-white/70">
           <ShieldCheck size={14} className="text-[#36B37E]" />
-          <span>Zero-configuration instant access • Fully isolated PostgreSQL RLS sandbox</span>
+          <span>Zero-configuration instant access • HIPAA-compliant encrypted clinical workspace</span>
         </div>
       </div>
     </section>

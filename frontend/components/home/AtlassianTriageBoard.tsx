@@ -6,22 +6,12 @@ import {
   Search,
   Plus,
   Sparkles,
-  Bell,
-  Settings,
-  HelpCircle,
   Filter,
-  Users,
   AlertTriangle,
   CheckCircle2,
-  Clock,
-  ShieldCheck,
-  ChevronRight,
-  ExternalLink,
-  Bot,
+  Stethoscope,
   Activity,
-  Calendar,
-  FileText,
-  Stethoscope
+  FileText
 } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
@@ -34,7 +24,6 @@ interface BoardCard {
   priority: "High" | "Medium" | "Low" | "Emergency";
   assignee: { name: string; avatarBg: string; initial: string };
   metrics?: string;
-  latency?: string;
   isHitl?: boolean;
 }
 
@@ -46,348 +35,461 @@ export function AtlassianTriageBoard() {
 
   const columns: { title: string; count: number; items: BoardCard[] }[] = [
     {
-      title: "Triage Intake",
+      title: "Patient Intake",
       count: 3,
       items: [
         {
           id: "1",
           code: "OPD-204",
-          title: "Acute retrosternal chest tightness radiating to left arm",
+          title: "Acute chest tightness radiating to left arm with shortness of breath",
           tag: "emergency",
           tagColor: "bg-[#FFEBE6] text-[#DE350B]",
-          priority: "Emergency" as const,
+          priority: "Emergency",
           assignee: { name: "Dr. Chen", avatarBg: "bg-[#0C66E4]", initial: "C" },
           metrics: "SpO2 97% • HR 94",
         },
         {
           id: "2",
           code: "PED-102",
-          title: "Pediatric Otitis Media checkup with fever 38.4°C",
+          title: "Pediatric ear ache checkup with moderate fever 38.4°C",
           tag: "pediatrics",
           tagColor: "bg-[#EAE6FF] text-[#403294]",
-          priority: "Medium" as const,
+          priority: "Medium",
           assignee: { name: "Dr. Patel", avatarBg: "bg-[#22A06B]", initial: "P" },
-          metrics: "Temp 38.4°C • RR 22",
+          metrics: "Temp 38.4°C • Stable",
         },
         {
           id: "3",
           code: "RX-409",
-          title: "Routine refill query: Metformin 500mg BID with lab follow-up",
+          title: "Routine refill request: Metformin 500mg daily with lab follow-up",
           tag: "refill",
           tagColor: "bg-[#F1F2F4] text-[#44546F]",
-          priority: "Low" as const,
-          assignee: { name: "Triage Nurse", avatarBg: "bg-[#626F86]", initial: "N" },
-          metrics: "Vitals stable",
+          priority: "Low",
+          assignee: { name: "Nurse Elena", avatarBg: "bg-[#626F86]", initial: "E" },
+          metrics: "Vitals normal",
         },
       ],
     },
     {
-      title: "AI Processing",
+      title: "Clinical AI Analysis",
       count: 3,
       items: [
         {
           id: "4",
-          code: "AGENT-88",
-          title: "LangGraph StateGraph: Query Classifier → Risk Evaluator routing",
-          tag: "langgraph",
+          code: "CARE-88",
+          title: "Symptom Assessment: Evaluating acute cardiac vs gastrointestinal symptoms",
+          tag: "symptom-check",
           tagColor: "bg-[#DEEBFF] text-[#0747A6]",
-          priority: "High" as const,
-          assignee: { name: "AI Agent", avatarBg: "bg-[#0C66E4]", initial: "AI" },
-          latency: "⚡ 38ms LPU",
+          priority: "High",
+          assignee: { name: "Clinical Assistant", avatarBg: "bg-[#0C66E4]", initial: "AI" },
+          metrics: "Guidelines active",
         },
         {
           id: "5",
-          code: "RAG-19",
-          title: "Pinecone Vector RAG: ACC/AHA clinical protocols retrieved",
-          tag: "protocols",
+          code: "PROTO-19",
+          title: "Cardiology Clinical Protocols: Matching standard ACC/AHA chest pain care pathways",
+          tag: "protocol-match",
           tagColor: "bg-[#DEEBFF] text-[#0747A6]",
-          priority: "Medium" as const,
-          assignee: { name: "Vector Index", avatarBg: "bg-[#6554C0]", initial: "RAG" },
-          metrics: "99.2% match",
+          priority: "Medium",
+          assignee: { name: "Care Protocol", avatarBg: "bg-[#6554C0]", initial: "CP" },
+          metrics: "Protocol verified",
         },
         {
           id: "6",
-          code: "INGEST-12",
-          title: "Discharge summary extraction to Pydantic v2 Vitals & ICD-10",
-          tag: "pydantic-v2",
+          code: "RECORD-12",
+          title: "Medical Records Ingestion: Laboratory blood panel & discharge summary parsed",
+          tag: "records-sync",
           tagColor: "bg-[#E3FCEF] text-[#006644]",
-          priority: "Low" as const,
-          assignee: { name: "OCR Worker", avatarBg: "bg-[#00875A]", initial: "OCR" },
-          metrics: "4 pages parsed",
+          priority: "Low",
+          assignee: { name: "Records Intake", avatarBg: "bg-[#00875A]", initial: "RI" },
+          metrics: "Labs structured",
         },
       ],
     },
     {
-      title: "In Review • HITL Gate",
+      title: "Doctor Review • Oversight",
       count: 2,
       items: [
         {
           id: "7",
-          code: "HITL-105",
-          title: "SUSPENDED FOR MD SIGN-OFF: Acute Coronary Syndrome risk detected",
-          tag: "needs-md",
+          code: "MD-105",
+          title: "SUSPENDED FOR DOCTOR SIGN-OFF: Acute cardiac risk flag requires attending review",
+          tag: "needs-doctor",
           tagColor: "bg-[#FFF0B3] text-[#172B4D] font-bold border border-[#F5CD47]",
-          priority: "Emergency" as const,
+          priority: "Emergency",
           assignee: { name: "Dr. Prannessh KVA", avatarBg: "bg-[#DE350B]", initial: "PK" },
-          metrics: "Pending sign-off",
+          metrics: "Needs signature",
           isHitl: true,
         },
         {
           id: "8",
-          code: "CONTRA-04",
-          title: "Lethal Contraindication: ACE Inhibitor detected in pregnant patient",
-          tag: "safety-guard",
+          code: "SAFETY-04",
+          title: "Medication Conflict Alert: Blood pressure prescription flagged with pregnancy",
+          tag: "safety-alert",
           tagColor: "bg-[#FFEBE6] text-[#DE350B] font-bold",
-          priority: "High" as const,
+          priority: "High",
           assignee: { name: "Safety Gate", avatarBg: "bg-[#AE2A19]", initial: "SG" },
-          metrics: "Execution blocked",
+          metrics: "Conflict blocked",
           isHitl: true,
         },
       ],
     },
     {
-      title: "Signed & Dispatched",
+      title: "Approved & Dispatched",
       count: 3,
       items: [
         {
           id: "9",
-          code: "CARE-72",
-          title: "Hypertension step-down care plan approved by Dr. Chen",
-          tag: "icd10-i10",
+          code: "PLAN-72",
+          title: "Hypertension step-down care plan approved by Dr. Chen & dispatched to patient",
+          tag: "care-plan",
           tagColor: "bg-[#E3FCEF] text-[#006644]",
-          priority: "Low" as const,
+          priority: "Low",
           assignee: { name: "Dr. Chen", avatarBg: "bg-[#0C66E4]", initial: "C" },
-          metrics: "Sent to patient",
+          metrics: "Care plan sent",
         },
         {
           id: "10",
           code: "LAB-14",
-          title: "Structured Pathology Lab: Troponin normal, HbA1c 6.8%",
-          tag: "ehr-synced",
+          title: "Blood pathology report verified: Cardiac enzymes normal, HbA1c 6.8%",
+          tag: "verified-lab",
           tagColor: "bg-[#E3FCEF] text-[#006644]",
-          priority: "Low" as const,
-          assignee: { name: "Integration", avatarBg: "bg-[#00875A]", initial: "EHR" },
-          metrics: "Postgres RLS",
+          priority: "Low",
+          assignee: { name: "EHR Sync", avatarBg: "bg-[#00875A]", initial: "EHR" },
+          metrics: "Patient chart updated",
         },
         {
           id: "11",
           code: "APPT-55",
-          title: "Automated booking confirmed: Cardiology Dr. Patel, Nov 18",
-          tag: "calendar",
+          title: "Specialist consultation scheduled: Cardiology Dr. Patel, Nov 18",
+          tag: "confirmed",
           tagColor: "bg-[#DEEBFF] text-[#0747A6]",
-          priority: "Low" as const,
-          assignee: { name: "Router", avatarBg: "bg-[#22A06B]", initial: "P" },
-          metrics: "Slot locked",
+          priority: "Low",
+          assignee: { name: "Reception", avatarBg: "bg-[#22A06B]", initial: "P" },
+          metrics: "Appointment confirmed",
         },
       ],
     },
   ];
 
   return (
-    <section id="triage-board" className="py-12 bg-[#FAFBFC] border-y border-[#DFE1E6]">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section
+      id="triage-board"
+      style={{
+        backgroundColor: "#FAFBFC",
+        padding: "56px 24px",
+        borderTop: "1px solid #DFE1E6",
+        borderBottom: "1px solid #DFE1E6",
+      }}
+    >
+      <div style={{ maxWidth: "1180px", margin: "0 auto" }}>
         
         {/* Section Header */}
-        <div className="text-center mb-10">
-          <div className="text-xs font-bold uppercase tracking-wider text-[#0C66E4] mb-2">
-            Interactive Product Preview
+        <div style={{ textAlign: "center", marginBottom: "36px" }}>
+          <div
+            style={{
+              fontSize: "12px",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.5px",
+              color: "#0C66E4",
+              marginBottom: "8px",
+            }}
+          >
+            Clinical Triage Board
           </div>
-          <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#091E42]">
-            Clinical operations at the speed of thought
+          <h2
+            style={{
+              fontSize: "36px",
+              fontWeight: 800,
+              letterSpacing: "-0.025em",
+              color: "#091E42",
+              margin: "0 0 10px 0",
+              fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+            }}
+          >
+            How care teams and clinical AI collaborate in real-time
           </h2>
-          <p className="mt-3 text-base text-[#44546F] max-w-2xl mx-auto">
-            Experience how clinicians and AI agents collaborate in real-time — from autonomous symptom intake to mandatory physician sign-off.
+          <p style={{ fontSize: "16px", color: "#44546F", maxWidth: "680px", margin: "0 auto", lineHeight: 1.6 }}>
+            Track patient consultations from initial symptom intake to diagnostic analysis and mandatory physician sign-off.
           </p>
         </div>
 
         {/* The Atlassian Jira-Style Triage Board Frame */}
-        <div className="overflow-hidden rounded-xl border border-[#DFE1E6] bg-white shadow-xl">
-          
-          {/* Top Jira / Atlassian Utility Bar */}
-          <div className="flex items-center justify-between border-b border-[#DFE1E6] bg-[#F7F8F9] px-4 py-2.5 text-xs text-[#44546F]">
-            <div className="flex items-center gap-3">
-              <div className="flex h-6 w-6 items-center justify-center rounded bg-[#0C66E4] text-white font-bold text-[10px]">
-                <Heart size={13} className="fill-white" />
+        <div
+          style={{
+            borderRadius: "12px",
+            border: "1px solid #DFE1E6",
+            backgroundColor: "#FFFFFF",
+            boxShadow: "0 16px 36px -8px rgba(9, 30, 66, 0.14)",
+            overflow: "hidden",
+          }}
+        >
+          {/* Top Utility Bar */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              padding: "10px 16px",
+              borderBottom: "1px solid #DFE1E6",
+              backgroundColor: "#F7F8F9",
+              fontSize: "12px",
+              color: "#44546F",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+              <div
+                style={{
+                  width: "24px",
+                  height: "24px",
+                  borderRadius: "5px",
+                  backgroundColor: "#0C66E4",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  color: "#FFFFFF",
+                }}
+              >
+                <Heart size={14} fill="#FFFFFF" color="#FFFFFF" />
               </div>
-              <span className="font-semibold text-[#091E42]">MediFlow Triage</span>
-              <div className="relative hidden sm:block">
-                <Search size={14} className="absolute left-2.5 top-1.5 text-[#626F86]" />
+              <span style={{ fontWeight: 700, color: "#091E42" }}>MediFlow Clinical Triage</span>
+              <div style={{ position: "relative" }}>
+                <Search size={13} style={{ position: "absolute", left: "10px", top: "7px", color: "#626F86" }} />
                 <input
                   type="text"
-                  placeholder="Search clinical board..."
+                  placeholder="Search triage board..."
                   value={filterQuery}
                   onChange={(e) => setFilterQuery(e.target.value)}
-                  className="h-7 w-48 rounded-md border border-[#DFE1E6] bg-white pl-8 pr-2 text-xs text-[#091E42] placeholder-[#626F86] focus:border-[#0C66E4] focus:outline-none"
+                  style={{
+                    height: "28px",
+                    width: "200px",
+                    borderRadius: "6px",
+                    border: "1px solid #DFE1E6",
+                    backgroundColor: "#FFFFFF",
+                    paddingLeft: "28px",
+                    paddingRight: "8px",
+                    fontSize: "12px",
+                    color: "#091E42",
+                    outline: "none",
+                  }}
                 />
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
               <button
                 onClick={() => openSignInModal("/chat")}
-                className="flex items-center gap-1.5 rounded-md bg-[#0C66E4] px-3 py-1 font-semibold text-white hover:bg-[#0052CC] transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "6px",
+                  padding: "5px 12px",
+                  borderRadius: "6px",
+                  backgroundColor: "#0C66E4",
+                  color: "#FFFFFF",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  border: "none",
+                  cursor: "pointer",
+                }}
               >
                 <Plus size={14} />
-                <span>New Triage</span>
+                <span>New Triage Case</span>
               </button>
 
               <button
                 onClick={() => openSignInModal("/chat")}
-                className="hidden sm:flex items-center gap-1 rounded-md border border-[#DFE1E6] bg-white px-2.5 py-1 text-xs font-semibold text-[#091E42] hover:bg-[#F1F2F4] transition-colors"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "5px",
+                  padding: "5px 10px",
+                  borderRadius: "6px",
+                  backgroundColor: "#FFFFFF",
+                  border: "1px solid #DFE1E6",
+                  color: "#091E42",
+                  fontSize: "12px",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
               >
-                <Sparkles size={13} className="text-[#0C66E4]" />
-                <span>Ask MediFlow AI</span>
+                <Sparkles size={13} color="#0C66E4" />
+                <span>Ask Clinical AI</span>
               </button>
             </div>
           </div>
 
-          {/* Space / Ward Header */}
-          <div className="border-b border-[#DFE1E6] bg-white px-6 py-4">
-            <div className="text-[11px] font-medium text-[#626F86]">
-              Spaces / Saint Jude Medical Center
+          {/* Ward Header */}
+          <div style={{ padding: "16px 24px", borderBottom: "1px solid #DFE1E6", backgroundColor: "#FFFFFF" }}>
+            <div style={{ fontSize: "11px", fontWeight: 500, color: "#626F86" }}>
+              Hospital Ward / Saint Jude Medical Center
             </div>
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mt-1">
-              <div className="flex items-center gap-2">
-                <span className="text-xl font-bold tracking-tight text-[#091E42]">
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginTop: "4px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "20px", fontWeight: 800, color: "#091E42" }}>
                   Emergency &amp; Inpatient Triage Roadmap
                 </span>
-                <span className="rounded bg-[#E9F2FF] px-2 py-0.5 text-xs font-bold text-[#0C66E4]">
-                  Tenant: Saint-Jude-01
+                <span style={{ backgroundColor: "#E9F2FF", color: "#0C66E4", padding: "2px 8px", borderRadius: "4px", fontSize: "11px", fontWeight: 700 }}>
+                  Hospital Tenant 01
                 </span>
               </div>
 
-              {/* Clinician Avatars Stack */}
-              <div className="flex items-center gap-1.5">
-                <div className="flex -space-x-2">
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#0C66E4] text-[10px] font-bold text-white ring-2 ring-white" title="Dr. Prannessh KVA (Clinical Director)">
+              {/* Active Clinicians */}
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <div style={{ display: "flex", marginRight: "-8px" }}>
+                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#0C66E4", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, border: "2px solid #FFFFFF" }}>
                     PK
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#22A06B] text-[10px] font-bold text-white ring-2 ring-white" title="Dr. Sarah Chen (Cardiology)">
+                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#22A06B", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, border: "2px solid #FFFFFF", marginLeft: "-6px" }}>
                     SC
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#6554C0] text-[10px] font-bold text-white ring-2 ring-white" title="Dr. Patel (Emergency)">
+                  <div style={{ width: "26px", height: "26px", borderRadius: "50%", backgroundColor: "#6554C0", color: "#FFFFFF", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "10px", fontWeight: 700, border: "2px solid #FFFFFF", marginLeft: "-6px" }}>
                     DP
                   </div>
-                  <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[#172B4D] text-[9px] font-bold text-white ring-2 ring-white" title="AI Agent StateGraph">
-                    AI
-                  </div>
                 </div>
-                <span className="text-xs text-[#626F86] ml-2">4 Active Clinicians</span>
+                <span style={{ fontSize: "12px", color: "#626F86", marginLeft: "12px" }}>Active Doctors On Call</span>
               </div>
             </div>
 
-            {/* Navigation Tabs (Atlassian style: Summary, Board, List, Forms, Pages) */}
-            <div className="flex items-center gap-6 mt-4 border-b border-[#DFE1E6] text-sm">
+            {/* Navigation Tabs */}
+            <div style={{ display: "flex", gap: "24px", marginTop: "16px", borderBottom: "1px solid #DFE1E6", fontSize: "13.5px" }}>
               {[
-                { id: "summary", label: "Summary" },
+                { id: "summary", label: "Ward Summary" },
                 { id: "board", label: "Triage Board" },
                 { id: "list", label: "Patient List" },
-                { id: "ingest", label: "EHR Ingest" },
+                { id: "ingest", label: "Medical Records" },
                 { id: "reports", label: "Lab Reports" },
-                { id: "hitl", label: "HITL Oversight" },
+                { id: "hitl", label: "Doctor Oversight" },
               ].map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative pb-2.5 font-medium transition-colors ${
-                    activeTab === tab.id
-                      ? "text-[#0C66E4] font-semibold"
-                      : "text-[#44546F] hover:text-[#091E42]"
-                  }`}
+                  style={{
+                    paddingBottom: "10px",
+                    fontWeight: activeTab === tab.id ? 700 : 500,
+                    color: activeTab === tab.id ? "#0C66E4" : "#44546F",
+                    border: "none",
+                    borderBottom: activeTab === tab.id ? "2px solid #0C66E4" : "2px solid transparent",
+                    backgroundColor: "transparent",
+                    cursor: "pointer",
+                  }}
                 >
                   {tab.label}
-                  {activeTab === tab.id && (
-                    <span className="absolute bottom-0 left-0 h-0.5 w-full bg-[#0C66E4]" />
-                  )}
                 </button>
               ))}
             </div>
 
-            {/* Sub-toolbar (Search, Filter, Group, Needs input) */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-3">
-              <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1.5 text-xs text-[#626F86]">
-                  <Filter size={14} />
-                  <span>Filter by:</span>
-                </div>
-                <span className="rounded-full bg-[#F1F2F4] px-2.5 py-1 text-xs font-semibold text-[#091E42]">
+            {/* Sub-toolbar */}
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", paddingTop: "12px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "12px", color: "#626F86" }}>Filter:</span>
+                <span style={{ backgroundColor: "#F1F2F4", color: "#091E42", padding: "3px 10px", borderRadius: "999px", fontSize: "12px", fontWeight: 600 }}>
                   All Patients
                 </span>
-                <span className="rounded-full bg-[#F1F2F4] px-2.5 py-1 text-xs font-medium text-[#44546F] hover:bg-[#E9F2FF] hover:text-[#0C66E4] cursor-pointer">
+                <span style={{ backgroundColor: "#F1F2F4", color: "#44546F", padding: "3px 10px", borderRadius: "999px", fontSize: "12px", cursor: "pointer" }}>
                   Cardiology
                 </span>
-                <span className="rounded-full bg-[#F1F2F4] px-2.5 py-1 text-xs font-medium text-[#44546F] hover:bg-[#E9F2FF] hover:text-[#0C66E4] cursor-pointer">
+                <span style={{ backgroundColor: "#F1F2F4", color: "#44546F", padding: "3px 10px", borderRadius: "999px", fontSize: "12px", cursor: "pointer" }}>
                   Emergency
                 </span>
               </div>
 
-              <div className="flex items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded bg-[#FFF0B3] px-2 py-0.5 text-xs font-bold text-[#172B4D]">
-                  <AlertTriangle size={12} className="text-[#FF991F]" />
-                  <span>Needs MD Sign-Off (2)</span>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                    backgroundColor: "#FFF0B3",
+                    color: "#172B4D",
+                    padding: "3px 8px",
+                    borderRadius: "4px",
+                    fontSize: "11.5px",
+                    fontWeight: 700,
+                  }}
+                >
+                  <AlertTriangle size={12} color="#FF991F" />
+                  <span>Needs Doctor Sign-Off (2)</span>
                 </span>
               </div>
             </div>
-
           </div>
 
-          {/* Kanban Board Columns (Atlassian Jira layout) */}
-          <div className="p-4 sm:p-6 bg-[#F7F8F9] overflow-x-auto">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 min-w-[800px]">
+          {/* 4 Kanban Columns */}
+          <div style={{ padding: "20px", backgroundColor: "#F7F8F9", overflowX: "auto" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "14px", minWidth: "860px" }}>
               {columns.map((col, idx) => (
-                <div key={idx} className="flex flex-col rounded-lg bg-[#EBECF0]/60 p-3">
-                  {/* Column Header */}
-                  <div className="flex items-center justify-between mb-3 px-1 text-xs font-bold text-[#44546F] uppercase tracking-wider">
+                <div
+                  key={idx}
+                  style={{
+                    backgroundColor: "rgba(235, 236, 240, 0.7)",
+                    borderRadius: "8px",
+                    padding: "12px",
+                    display: "flex",
+                    flexDirection: "column",
+                  }}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px", padding: "0 4px", fontSize: "12px", fontWeight: 700, color: "#44546F", textTransform: "uppercase" }}>
                     <span>{col.title}</span>
-                    <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-bold text-[#091E42] shadow-xs">
+                    <span style={{ backgroundColor: "#FFFFFF", padding: "1px 7px", borderRadius: "999px", fontSize: "11px", fontWeight: 800, color: "#091E42" }}>
                       {col.count}
                     </span>
                   </div>
 
-                  {/* Task Cards */}
-                  <div className="space-y-2.5 flex-1">
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
                     {col.items.map((item) => (
                       <div
                         key={item.id}
                         onClick={() => setSelectedCard(item)}
-                        className={`group relative rounded-lg border bg-white p-3.5 shadow-xs transition-all hover:shadow-md hover:border-[#85B8FF] cursor-pointer ${
-                          item.isHitl ? "border-[#FF991F] ring-1 ring-[#FF991F]/30" : "border-[#DFE1E6]"
-                        }`}
+                        style={{
+                          backgroundColor: "#FFFFFF",
+                          border: item.isHitl ? "1px solid #FF991F" : "1px solid #DFE1E6",
+                          borderRadius: "8px",
+                          padding: "12px",
+                          boxShadow: "0 1px 3px rgba(9, 30, 66, 0.08)",
+                          cursor: "pointer",
+                          transition: "all 0.15s ease",
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.borderColor = "#0C66E4")}
+                        onMouseOut={(e) => (e.currentTarget.style.borderColor = item.isHitl ? "#FF991F" : "#DFE1E6")}
                       >
                         {item.isHitl && (
-                          <div className="mb-2 flex items-center gap-1 text-[11px] font-bold text-[#DE350B]">
+                          <div style={{ display: "flex", alignItems: "center", gap: "4px", fontSize: "11px", fontWeight: 800, color: "#DE350B", marginBottom: "6px" }}>
                             <AlertTriangle size={12} />
-                            <span>EXECUTION SUSPENDED</span>
+                            <span>SUSPENDED FOR DOCTOR SIGN-OFF</span>
                           </div>
                         )}
 
-                        <p className="text-sm font-semibold text-[#091E42] leading-snug group-hover:text-[#0C66E4] transition-colors">
+                        <p style={{ fontSize: "13.5px", fontWeight: 600, color: "#091E42", lineHeight: 1.45, margin: "0 0 10px 0" }}>
                           {item.title}
                         </p>
 
-                        <div className="mt-3 flex items-center justify-between text-xs">
-                          <div className="flex items-center gap-1.5">
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11px" }}>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
                             <span className={`rounded px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider ${item.tagColor}`}>
                               {item.tag}
                             </span>
-                            {item.latency && (
-                              <span className="text-[10px] font-bold text-[#0C66E4]">
-                                {item.latency}
-                              </span>
-                            )}
-                            {item.metrics && !item.latency && (
-                              <span className="text-[11px] text-[#626F86]">
-                                {item.metrics}
-                              </span>
+                            {item.metrics && (
+                              <span style={{ color: "#626F86", fontSize: "11px" }}>{item.metrics}</span>
                             )}
                           </div>
 
-                          <div className="flex items-center gap-1.5">
-                            <span className="text-[11px] font-mono font-medium text-[#626F86]">
-                              {item.code}
-                            </span>
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                            <span style={{ fontFamily: "monospace", fontSize: "11px", color: "#626F86" }}>{item.code}</span>
                             <div
-                              className={`flex h-5 w-5 items-center justify-center rounded-full ${item.assignee.avatarBg} text-[9px] font-bold text-white`}
+                              style={{
+                                width: "20px",
+                                height: "20px",
+                                borderRadius: "50%",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                color: "#FFFFFF",
+                                fontSize: "9px",
+                                fontWeight: 700,
+                              }}
+                              className={item.assignee.avatarBg}
                               title={item.assignee.name}
                             >
                               {item.assignee.initial}
@@ -398,49 +500,84 @@ export function AtlassianTriageBoard() {
                     ))}
                   </div>
 
-                  {/* Add Triage Quick Action */}
                   <button
                     onClick={() => openSignInModal("/chat")}
-                    className="mt-3 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-xs font-semibold text-[#44546F] hover:bg-white hover:text-[#0C66E4] transition-colors"
+                    style={{
+                      marginTop: "12px",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "6px",
+                      padding: "6px",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      color: "#44546F",
+                      backgroundColor: "transparent",
+                      border: "none",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      textAlign: "left",
+                    }}
                   >
                     <Plus size={14} />
-                    <span>Create clinical task</span>
+                    <span>Create patient triage card</span>
                   </button>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Bottom Card Detail Drawer/Modal */}
+          {/* Card Detail Slide-Out / Drawer */}
           {selectedCard && (
-            <div className="border-t border-[#DFE1E6] bg-white p-4 sm:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <div className="flex items-start gap-3">
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#E9F2FF] text-[#0C66E4] font-bold text-xs mt-0.5">
-                  {selectedCard.code}
+            <div
+              style={{
+                borderTop: "1px solid #DFE1E6",
+                backgroundColor: "#FFFFFF",
+                padding: "16px 20px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                gap: "16px",
+              }}
+            >
+              <div>
+                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                  <span style={{ fontSize: "14px", fontWeight: 700, color: "#091E42" }}>{selectedCard.title}</span>
+                  <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${selectedCard.tagColor}`}>
+                    {selectedCard.tag}
+                  </span>
                 </div>
-                <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-bold text-[#091E42]">{selectedCard.title}</span>
-                    <span className={`rounded px-2 py-0.5 text-[10px] font-bold uppercase ${selectedCard.tagColor}`}>
-                      {selectedCard.tag}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#626F86] mt-0.5">
-                    Assigned: <strong className="text-[#091E42]">{selectedCard.assignee.name}</strong> • Priority: {selectedCard.priority} • {selectedCard.metrics || selectedCard.latency}
-                  </p>
-                </div>
+                <p style={{ fontSize: "12px", color: "#626F86", margin: "4px 0 0 0" }}>
+                  Assigned Physician: <strong style={{ color: "#091E42" }}>{selectedCard.assignee.name}</strong> • Priority: {selectedCard.priority} • {selectedCard.metrics}
+                </p>
               </div>
 
-              <div className="flex items-center gap-2 self-end sm:self-auto">
+              <div style={{ display: "flex", gap: "8px" }}>
                 <button
                   onClick={() => openSignInModal(selectedCard.isHitl ? "/admin" : "/chat")}
-                  className="rounded-md bg-[#0C66E4] px-3.5 py-1.5 text-xs font-semibold text-white shadow-xs hover:bg-[#0052CC] transition-colors"
+                  style={{
+                    backgroundColor: "#0C66E4",
+                    color: "#FFFFFF",
+                    padding: "6px 14px",
+                    borderRadius: "6px",
+                    border: "none",
+                    fontSize: "12.5px",
+                    fontWeight: 600,
+                    cursor: "pointer",
+                  }}
                 >
-                  {selectedCard.isHitl ? "Review & Sign Off (MD)" : "Open in Workspace"}
+                  {selectedCard.isHitl ? "Review & Sign Off as Doctor" : "Open in Clinical Workspace"}
                 </button>
                 <button
                   onClick={() => setSelectedCard(null)}
-                  className="rounded-md border border-[#DFE1E6] px-3 py-1.5 text-xs font-semibold text-[#44546F] hover:bg-[#F1F2F4] transition-colors"
+                  style={{
+                    backgroundColor: "transparent",
+                    color: "#44546F",
+                    padding: "6px 12px",
+                    borderRadius: "6px",
+                    border: "1px solid #DFE1E6",
+                    fontSize: "12.5px",
+                    cursor: "pointer",
+                  }}
                 >
                   Close
                 </button>

@@ -10,17 +10,17 @@ export function AtlassianNavbar() {
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
 
   const products = [
-    { title: "Clinical Triage Engine", desc: "Multi-agent LangGraph workflow with deterministic risk scoring", href: "/chat" },
-    { title: "HITL Oversight Gate", desc: "Human-in-the-loop review queue for acute symptom suspensions", href: "/admin" },
-    { title: "Document Ingestion Pipeline", desc: "Non-blocking extraction to Pydantic v2 Vitals & ICD-10", href: "/reports" },
-    { title: "Runtime Circuit Breakers", desc: "3-state resilience against upstream latency & contraindications", href: "/admin" },
+    { title: "Clinical Triage Assistant", desc: "Intelligent symptom assessment with physician oversight", href: "/chat" },
+    { title: "Doctor Sign-Off Queue", desc: "Mandatory physician review queue for high-risk patient symptoms", href: "/admin" },
+    { title: "Medical Records Intake", desc: "Instant extraction of vital signs, lab panels, and patient history", href: "/reports" },
+    { title: "Patient Appointment Care", desc: "Automated scheduling and clinical follow-up routing", href: "/appointments" },
   ];
 
   const clinicalAi = [
-    { title: "LangGraph Multi-Agent", desc: "StateGraph orchestration across specialized diagnostic agents", href: "/chat" },
-    { title: "Pinecone Semantic RAG", desc: "Vector search grounded in clinical protocols and guidelines", href: "/chat" },
-    { title: "Lethal Contraindication Screening", desc: "Automated drug-disease and drug-drug safety guards", href: "/admin" },
-    { title: "Fast Reflex Classification", desc: "Sub-50ms intent and risk routing for clinical queries", href: "/chat" },
+    { title: "Doctor-Supervised AI", desc: "Clinical decision support guided by licensed physicians", href: "/chat" },
+    { title: "Medical Care Guidelines", desc: "Responses grounded in verified clinical protocols and reference standards", href: "/chat" },
+    { title: "Medication & Allergy Screening", desc: "Real-time safety checks against drug interactions and allergies", href: "/admin" },
+    { title: "24/7 Rapid Patient Guidance", desc: "Instant symptom guidance and triage for clinic patients", href: "/chat" },
   ];
 
   return (

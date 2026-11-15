@@ -22,44 +22,44 @@ export function AtlassianFeatures() {
     {
       icon: GitFork,
       color: "bg-[#DEEBFF] text-[#0C66E4]",
-      title: "LangGraph Multi-Agent StateGraph",
-      desc: "Deterministic state machine coordinating specialized agents: Query Classifier, Risk Evaluator, Protocol RAG, and Response Validator with partitioned state.",
-      badge: "Orchestration",
+      title: "Intelligent Clinical Decision Support",
+      desc: "Assists doctors, nurses, and clinicians by analyzing complex symptom presentations, cross-referencing clinical care guidelines, and prioritizing patient acuity.",
+      badge: "Clinical Intelligence",
     },
     {
       icon: ShieldAlert,
       color: "bg-[#FFF0B3] text-[#172B4D]",
-      title: "Human-in-the-Loop (HITL) Oversight",
-      desc: "Suspends autonomous execution on acute or emergency symptoms. Enqueues clinical drafts for physician approval, modification, or rejection.",
+      title: "Physician Sign-Off on Acute Cases",
+      desc: "High-risk symptoms and critical diagnoses automatically require review and sign-off by a licensed physician before care recommendations are delivered.",
       badge: "Patient Safety",
     },
     {
       icon: FileCheck2,
       color: "bg-[#E3FCEF] text-[#006644]",
-      title: "Non-Blocking Document Pipeline",
-      desc: "Offloads CPU-bound PDF extraction and regex parsing to async OS threads. Converts unstructured summaries into Pydantic v2 Vitals, Labs & ICD-10.",
-      badge: "High Throughput",
+      title: "Instant Medical Records & Lab Intake",
+      desc: "Instantly extracts vital signs, laboratory panels, and diagnostic findings from patient records, discharge summaries, and medical histories.",
+      badge: "Seamless Intake",
     },
     {
       icon: Cpu,
       color: "bg-[#EAE6FF] text-[#403294]",
-      title: "Runtime Clinical Circuit Breakers",
-      desc: "Three-state circuit breaker (CLOSED, OPEN, HALF_OPEN) protects against upstream LLM latency, HTTP 429 limits, and lethal contraindications.",
-      badge: "Resilience",
+      title: "Allergy & Medication Safety Screening",
+      desc: "Continuous real-time safety checks screen for dangerous drug-drug interactions, known allergies, and clinical contraindications before prescribing.",
+      badge: "Patient Protection",
     },
     {
       icon: Lock,
       color: "bg-[#DEEBFF] text-[#0C66E4]",
-      title: "PostgreSQL Row-Level Security (RLS)",
-      desc: "Cryptographic tenant isolation at the database layer. Every clinical record, note, and appointment is strictly partitioned per healthcare tenant.",
-      badge: "Zero Trust",
+      title: "Hospital-Grade Patient Privacy",
+      desc: "Strict medical record protection and encryption safeguard every patient consultation, lab report, and doctor communication under HIPAA standards.",
+      badge: "HIPAA Compliant",
     },
     {
       icon: Zap,
       color: "bg-[#FFF0B3] text-[#172B4D]",
-      title: "Sub-50ms Fast Reflex Triage",
-      desc: "Instant query classification routes high-frequency symptom questions within milliseconds while reserving deep reasoning for complex multi-hop cases.",
-      badge: "Performance",
+      title: "Rapid 24/7 Patient Guidance",
+      desc: "Provides instant symptom guidance and appointment routing for patients around the clock, reducing clinic wait times and emergency room crowding.",
+      badge: "Care Continuity",
     },
   ];
 
@@ -70,13 +70,13 @@ export function AtlassianFeatures() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-14">
           <div className="text-xs font-bold uppercase tracking-wider text-[#0C66E4] mb-2">
-            Enterprise Clinical Architecture
+            Clinical Platform Capabilities
           </div>
           <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-[#091E42]">
-            Engineering safety into every clinical touchpoint
+            Empowering healthcare teams with safe, reliable medical intelligence
           </h2>
           <p className="mt-3 text-base text-[#44546F] leading-relaxed">
-            MediFlow AI bridges autonomous clinical decision support with safety-first governance, guaranteeing that unverified AI recommendations never reach vulnerable patients.
+            MediFlow AI bridges autonomous clinical decision support with doctor-supervised governance, ensuring that unverified recommendations never reach patients without physician review.
           </p>
         </div>
 

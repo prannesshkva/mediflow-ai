@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ArrowRight, CheckCircle2 } from "lucide-react";
+import { ArrowRight, CheckCircle2, ShieldCheck, Heart } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 
 export function AtlassianHero() {
@@ -23,7 +23,7 @@ export function AtlassianHero() {
           padding: "0 24px",
         }}
       >
-        {/* Top Category Badge */}
+        {/* Top Category Badge (Pure Layman Clinical Terms) */}
         <div
           style={{
             display: "inline-flex",
@@ -33,7 +33,7 @@ export function AtlassianHero() {
             borderRadius: "999px",
             border: "1px solid #DFE1E6",
             backgroundColor: "#F4F5F7",
-            fontSize: "12.5px",
+            fontSize: "13px",
             fontWeight: 600,
             color: "#091E42",
             marginBottom: "20px",
@@ -48,12 +48,12 @@ export function AtlassianHero() {
               display: "inline-block",
             }}
           />
-          <span>Clinical Decision Support with HITL Governance</span>
+          <span>Intelligent Patient Triage with Licensed Doctor Oversight</span>
           <span style={{ color: "#8993A4" }}>|</span>
-          <span style={{ color: "#0C66E4", fontWeight: 700 }}>FastAPI + LangGraph</span>
+          <span style={{ color: "#0C66E4", fontWeight: 700 }}>24/7 Clinical Care</span>
         </div>
 
-        {/* Hero Headline (Atlassian & Slack Font & Style) */}
+        {/* Hero Headline */}
         <h1
           style={{
             fontSize: "52px",
@@ -78,10 +78,10 @@ export function AtlassianHero() {
             margin: "0 auto 32px auto",
           }}
         >
-          Give your care teams and AI agents the shared context they need to make faster triage decisions, automate document intake, and protect patients with human-in-the-loop oversight.
+          Give your care teams, doctors, and nurses the shared clinical context they need to make faster triage decisions, automate medical records intake, and protect patients with human physician oversight.
         </p>
 
-        {/* Action Button Row (Matching Image 2 CTA) */}
+        {/* Action Button Row */}
         <div
           style={{
             display: "flex",
@@ -134,12 +134,12 @@ export function AtlassianHero() {
             onMouseOver={(e) => (e.currentTarget.style.backgroundColor = "#E9F2FF")}
             onMouseOut={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
           >
-            <span>Explore live clinical demo</span>
+            <span>Explore live doctor consultation</span>
             <span style={{ fontSize: "17px" }}>→</span>
           </button>
         </div>
 
-        {/* Trust Badges Strip */}
+        {/* Clinical Trust Badges Strip (Plain Layman Words) */}
         <div
           style={{
             marginTop: "44px",
@@ -150,26 +150,26 @@ export function AtlassianHero() {
             justifyContent: "center",
             flexWrap: "wrap",
             gap: "24px",
-            fontSize: "12.5px",
+            fontSize: "13px",
             fontWeight: 600,
             color: "#626F86",
           }}
         >
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <CheckCircle2 size={16} color="#22A06B" />
-            <span>Multi-Agent LangGraph Pipeline</span>
+            <span>Physician Sign-Off on Acute Cases</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <CheckCircle2 size={16} color="#22A06B" />
-            <span>Human-in-the-Loop MD Sign-Off</span>
+            <span>Medication Conflict &amp; Allergy Screening</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <CheckCircle2 size={16} color="#22A06B" />
-            <span>PostgreSQL Row-Level Security</span>
+            <span>Hospital-Grade Patient Privacy</span>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
             <CheckCircle2 size={16} color="#22A06B" />
-            <span>Automated Contraindication Screening</span>
+            <span>Instant Medical Records Ingestion</span>
           </div>
         </div>
 

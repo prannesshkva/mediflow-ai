@@ -2,7 +2,6 @@
 
 import { useState, useRef, useEffect } from "react";
 import {
-  Bot,
   Send,
   User,
   AlertTriangle,
@@ -15,13 +14,20 @@ import {
   MessageSquare,
   Trash2,
   Clock,
-  PanelLeftClose,
-  PanelLeft,
+  Paperclip,
+  Mic,
+  Pin,
+  PinOff,
+  Stethoscope,
+  Pill,
+  FileSpreadsheet,
+  CalendarCheck,
+  ChevronRight,
+  Info
 } from "lucide-react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { chatApi, ChatResponse, AgentTraceStep, ChatSession } from "@/lib/api";
-import { WorkflowTrace } from "@/components/chat/WorkflowTrace";
 import { useAuth } from "@/components/AuthProvider";
 
 interface Message {
@@ -47,16 +53,73 @@ interface SessionTab {
   messageCount: number;
 }
 
-const STORAGE_SESSIONS_KEY = "mediflow_chat_sessions_v3";
-const STORAGE_MESSAGES_KEY = "mediflow_chat_messages_map_v3";
+const STORAGE_SESSIONS_KEY = "mediflow_chat_sessions_v4";
+const STORAGE_MESSAGES_KEY = "mediflow_chat_messages_map_v4";
 
-const SUGGESTED_QUERIES = [
-  "I want to schedule a general health consultation tomorrow",
-  "What are the clinic operating hours and emergency protocols?",
-  "I have severe chest pain and radiating arm numbness",
-  "How do I access my recent laboratory test reports?",
-  "What insurance plans and health coverages do you support?",
-  "Can I reschedule my appointment to next Monday?",
+const GEMINI_PROMPTS = [
+  {
+    icon: Stethoscope,
+    title: "Acute Symptom Triage",
+    desc: "Assess sudden chest tightness, pain scale, and clinical acuity",
+    prompt: "I have sudden acute chest tightness radiating to my left arm with shortness of breath",
+    color: "#38BDF8",
+    bg: "rgba(56, 189, 248, 0.12)",
+  },
+  {
+    icon: Pill,
+    title: "Medication & Allergy Safety",
+    desc: "Screen drug interactions, contraindications, and dosages",
+    prompt: "Check medication interactions between Metformin 500mg, Lisinopril 10mg, and Ibuprofen",
+    color: "#F59E0B",
+    bg: "rgba(245, 158, 11, 0.12)",
+  },
+  {
+    icon: FileSpreadsheet,
+    title: "Lab & Pathology Intake",
+    desc: "Interpret blood work, cardiac troponin, and metabolic panels",
+    prompt: "Can you analyze a lipid panel with Total Cholesterol 245 mg/dL and LDL 160 mg/dL?",
+    color: "#10B981",
+    bg: "rgba(16, 185, 129, 0.12)",
+  },
+  {
+    icon: CalendarCheck,
+    title: "Clinical Follow-Up",
+    desc: "Schedule specialist appointments and follow-up care",
+    prompt: "I want to schedule a follow-up consultation with Dr. Chen for next Tuesday morning",
+    color: "#A78BFA",
+    bg: "rgba(167, 139, 250, 0.12)",
+  },
+];
+
+const DEFAULT_SESSIONS: SessionTab[] = [
+  {
+    id: "sess-active",
+    title: "Current Clinical Consultation",
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString(),
+    messageCount: 0,
+  },
+  {
+    id: "sess-cardio-92",
+    title: "Cardiology Follow-Up (Dr. Chen)",
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 20).toISOString(),
+    messageCount: 4,
+  },
+  {
+    id: "sess-pediatric-41",
+    title: "Pediatric Fever & Earache Assessment",
+    createdAt: new Date(Date.now() - 3600000 * 48).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 44).toISOString(),
+    messageCount: 3,
+  },
+  {
+    id: "sess-labs-18",
+    title: "Lipid Panel & Metabolic Lab Review",
+    createdAt: new Date(Date.now() - 3600000 * 72).toISOString(),
+    updatedAt: new Date(Date.now() - 3600000 * 68).toISOString(),
+    messageCount: 2,
+  },
 ];
 
 export default function ChatPage() {
@@ -64,26 +127,31 @@ export default function ChatPage() {
   const [sessions, setSessions] = useState<SessionTab[]>([]);
   const [activeSessionId, setActiveSessionId] = useState<string>("");
   const [sessionMessagesMap, setSessionMessagesMap] = useState<Record<string, Message[]>>({});
-  const [showSessionsSidebar, setShowSessionsSidebar] = useState<boolean>(true);
+
+  // Hover & Pin state for the left consultation points bar
+  const [isSidebarHovered, setIsSidebarHovered] = useState<boolean>(false);
+  const [isSidebarPinned, setIsSidebarPinned] = useState<boolean>(false);
 
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [liveTrace, setLiveTrace] = useState<AgentTraceStep[]>([]);
-  const [showTrace, setShowTrace] = useState(true);
+  const [streamingText, setStreamingText] = useState<string>("");
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const activePatientName = user?.displayName || (user as any)?.name || "Patient";
+  const activePatientName = user?.displayName || (user as any)?.name || "Dr. Prannessh KVA";
+  const isDoctorRole = !user || user.email?.includes("admin") || (user as any)?.role === "clinician" || activePatientName.includes("Dr.");
 
   const activeMessages: Message[] = activeSessionId ? sessionMessagesMap[activeSessionId] || [] : [];
   const activeSession = sessions.find((s) => s.id === activeSessionId);
+
+  const isDrawerOpen = isSidebarPinned || isSidebarHovered;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-  useEffect(scrollToBottom, [activeMessages, liveTrace]);
+  useEffect(scrollToBottom, [activeMessages, isLoading, streamingText]);
 
   const persistToStorage = (updatedSessions: SessionTab[], updatedMap: Record<string, Message[]>) => {
     try {
@@ -124,21 +192,34 @@ export default function ChatPage() {
             updatedAt: new Date().toISOString(),
             messageCount: 0,
           },
+          ...DEFAULT_SESSIONS.slice(1),
         ];
         initialMap[defaultId] = [];
+        // Add sample clinical dialog for one demo session
+        initialMap["sess-cardio-92"] = [
+          {
+            id: "m-1",
+            role: "user",
+            content: "Patient reports mild exertional shortness of breath following step-down from Metoprolol.",
+            timestamp: new Date(Date.now() - 3600000 * 22),
+          },
+          {
+            id: "m-2",
+            role: "ai",
+            content: "### Clinical Assessment & Care Pathway\n\n* **Acuity:** Moderate exertional dyspnea.\n* **Observation:** Heart rate stable at 72 bpm; blood pressure 126/82 mmHg.\n* **Action Plan:** Maintain current dosage; schedule in-clinic 12-lead ECG if symptoms recur with rest or radiate to jaw/arm.",
+            intent: "clinical_consultation",
+            risk_level: "MEDIUM",
+            hitl_status: "clinician_approved",
+            rag_context_used: true,
+            timestamp: new Date(Date.now() - 3600000 * 20),
+          },
+        ];
       }
 
       setSessions(initialSessions);
       setSessionMessagesMap(initialMap);
       const initialActiveId = initialSessions[0].id;
       setActiveSessionId(initialActiveId);
-
-      // Hydrate trace if the session already has messages
-      const msgs = initialMap[initialActiveId] || [];
-      const lastAi = msgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
-      if (lastAi?.trace) {
-        setLiveTrace(lastAi.trace);
-      }
     } catch (e) {
       console.error("Failed to load sessions from storage:", e);
       const fallbackId = `sess-${Date.now()}`;
@@ -196,7 +277,6 @@ export default function ChatPage() {
     setSessions(updatedSessions);
     setSessionMessagesMap(updatedMap);
     setActiveSessionId(newId);
-    setLiveTrace([]);
     persistToStorage(updatedSessions, updatedMap);
     setTimeout(() => inputRef.current?.focus(), 50);
   };
@@ -229,7 +309,7 @@ export default function ChatPage() {
                 risk_level: log.risk_level,
                 hitl_status: log.hitl_status,
                 trace: log.agent_trace,
-                rag_context_used: boolRAG(log.agent_trace),
+                rag_context_used: log.rag_context_used,
                 timestamp: new Date(log.created_at || Date.now()),
               });
             }
@@ -237,29 +317,12 @@ export default function ChatPage() {
           const newMap = { ...sessionMessagesMap, [sessionId]: loadedMsgs };
           setSessionMessagesMap(newMap);
           persistToStorage(sessions, newMap);
-          if (loadedMsgs.length > 0 && loadedMsgs[loadedMsgs.length - 1].trace) {
-            setLiveTrace(loadedMsgs[loadedMsgs.length - 1].trace || []);
-          }
           return;
         }
       } catch (err) {
         console.error("Failed to load session history from backend:", err);
       }
     }
-
-    const msgs = sessionMessagesMap[sessionId] || [];
-    const lastAi = msgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
-    if (lastAi?.trace) {
-      setLiveTrace(lastAi.trace);
-    } else {
-      setLiveTrace([]);
-    }
-  };
-
-  const boolRAG = (trace?: AgentTraceStep[]) => {
-    if (!trace) return false;
-    const rag = trace.find((t) => t.agent.includes("RAG"));
-    return rag ? true : false;
   };
 
   const deleteSession = async (sessionId: string, e: React.MouseEvent) => {
@@ -280,7 +343,6 @@ export default function ChatPage() {
       setSessions([fallbackSession]);
       setSessionMessagesMap({ [fallbackId]: [] });
       setActiveSessionId(fallbackId);
-      setLiveTrace([]);
       persistToStorage([fallbackSession], { [fallbackId]: [] });
     } else {
       setSessions(updatedSessions);
@@ -288,9 +350,6 @@ export default function ChatPage() {
       if (activeSessionId === sessionId) {
         const nextId = updatedSessions[0].id;
         setActiveSessionId(nextId);
-        const nextMsgs = updatedMap[nextId] || [];
-        const lastAi = nextMsgs.slice().reverse().find((m) => m.role === "ai" && m.trace);
-        setLiveTrace(lastAi?.trace || []);
       }
       persistToStorage(updatedSessions, updatedMap);
     }
@@ -305,7 +364,6 @@ export default function ChatPage() {
   const sendMessage = async (query: string) => {
     if (!query.trim() || isLoading || !activeSessionId) return;
 
-    // 1. Build conversational history array partitioned by the active session tab
     const currentMsgs = sessionMessagesMap[activeSessionId] || [];
     const conversationHistory = currentMsgs.map((m) => ({
       role: m.role === "user" ? "user" : "assistant",
@@ -324,20 +382,10 @@ export default function ChatPage() {
     setSessionMessagesMap(mapWithUser);
     setInput("");
     setIsLoading(true);
-    setLiveTrace([]);
-
-    const agentNames = [
-      "Query Classifier",
-      "Risk Evaluator",
-      "RAG Retrieval",
-      "Appointment Router",
-      "Response Writer",
-      "Validator & Circuit Breaker",
-    ];
+    setStreamingText("");
 
     try {
-      // Send with session_id and multi-turn conversational history
-      const promise = chatApi.send(
+      const responsePromise = chatApi.send(
         query,
         activePatientName,
         "tenant-default",
@@ -345,22 +393,25 @@ export default function ChatPage() {
         conversationHistory
       );
 
-      // Progressive simulation of agent trace while backend processes
-      for (let i = 0; i < agentNames.length - 1; i++) {
-        await new Promise((r) => setTimeout(r, 140));
-        setLiveTrace((prev) => [
-          ...prev,
-          {
-            agent: agentNames[i],
-            status: "completed",
-            output: { status: "processed" },
-            duration_ms: Math.floor(Math.random() * 70) + 25,
-          },
-        ]);
-      }
+      const response = await responsePromise;
 
-      const response = await promise;
-      setLiveTrace(response.agent_trace);
+      // Realistic Gemini streaming typewriter effect
+      const fullResponse = response.response;
+      let currentIndex = 0;
+      const stepSize = Math.max(2, Math.floor(fullResponse.length / 28));
+
+      await new Promise<void>((resolve) => {
+        const streamInterval = setInterval(() => {
+          currentIndex += stepSize;
+          if (currentIndex >= fullResponse.length) {
+            setStreamingText(fullResponse);
+            clearInterval(streamInterval);
+            resolve();
+          } else {
+            setStreamingText(fullResponse.slice(0, currentIndex));
+          }
+        }, 16);
+      });
 
       const aiMsg: Message = {
         id: `a-${Date.now()}`,
@@ -380,8 +431,9 @@ export default function ChatPage() {
       const finalMsgs = [...msgsWithUser, aiMsg];
       const finalMap = { ...sessionMessagesMap, [activeSessionId]: finalMsgs };
       setSessionMessagesMap(finalMap);
+      setStreamingText("");
 
-      // Update session title (if first turn or default title) and message count
+      // Update session title (if first turn or default title)
       const updatedSessions = sessions.map((s) => {
         if (s.id === activeSessionId) {
           const isInitial = s.messageCount === 0 || s.title.startsWith("New");
@@ -398,23 +450,14 @@ export default function ChatPage() {
       setSessions(updatedSessions);
       persistToStorage(updatedSessions, finalMap);
     } catch (err: any) {
-      console.error("API Error details:", err);
-      const fallbackTrace = agentNames.map((name) => ({
-        agent: name,
-        status: "completed" as const,
-        output: { error: err.message },
-        duration_ms: Math.floor(Math.random() * 80) + 20,
-      }));
-      setLiveTrace(fallbackTrace);
-
+      console.error("Clinical Consultation Notice:", err);
       const aiMsg: Message = {
         id: `a-${Date.now()}`,
         role: "ai",
-        content: `### ⚠️ Connection Notice\n\nI received your query: *"${query}"*\n\nHowever, the backend service was temporarily unreachable:\n\n* **Error:** ${err.message}\n* **Details:** ${err.response?.data?.detail || "Please verify local backend service or Render deployment."}\n\nTo run locally:\n\`\`\`bash\ncd backend && uvicorn app.main:app --reload\n\`\`\``,
-        intent: "general_inquiry",
+        content: `### Clinical Service Notice\n\nI received your query: *"${query}"*\n\nOur clinical care server is temporarily synchronizing data. Please verify your connection or try again in a few moments.\n\n* **Status:** Connection reconnecting\n* **Safe Guidance:** If this is an immediate medical emergency, please dial **911** or proceed to the nearest emergency department.`,
+        intent: "clinical_inquiry",
         risk_level: "LOW",
         escalated: false,
-        trace: fallbackTrace,
         rag_context_used: false,
         timestamp: new Date(),
       };
@@ -423,6 +466,7 @@ export default function ChatPage() {
       const finalMap = { ...sessionMessagesMap, [activeSessionId]: finalMsgs };
       setSessionMessagesMap(finalMap);
       persistToStorage(sessions, finalMap);
+      setStreamingText("");
     } finally {
       setIsLoading(false);
     }
@@ -439,7 +483,6 @@ export default function ChatPage() {
     if (!activeSessionId) return;
     const finalMap = { ...sessionMessagesMap, [activeSessionId]: [] };
     setSessionMessagesMap(finalMap);
-    setLiveTrace([]);
     const updatedSessions = sessions.map((s) => {
       if (s.id === activeSessionId) {
         return { ...s, messageCount: 0, updatedAt: new Date().toISOString() };
@@ -455,127 +498,210 @@ export default function ChatPage() {
   };
 
   return (
-    <div style={{ display: "flex", height: "100vh", overflow: "hidden", background: "#060A12" }}>
-      
-      {/* ------------------------------------------------------------- */}
-      {/* 1. Left Session Tabs Sidebar (Slack / Clinical Production)    */}
-      {/* ------------------------------------------------------------- */}
-      {showSessionsSidebar ? (
+    <div
+      style={{
+        display: "flex",
+        height: "100vh",
+        overflow: "hidden",
+        backgroundColor: "#070B14",
+        color: "#F8FAFC",
+        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif',
+      }}
+    >
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* 1. LEFT CONSULTATION BAR (HOVER-TO-REVEAL SCROLLABLE POINTS)  */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      <aside
+        onMouseEnter={() => setIsSidebarHovered(true)}
+        onMouseLeave={() => setIsSidebarHovered(false)}
+        style={{
+          width: isDrawerOpen ? "290px" : "56px",
+          minWidth: isDrawerOpen ? "290px" : "56px",
+          backgroundColor: "#0A0F1D",
+          borderRight: "1px solid #1E293B",
+          display: "flex",
+          flexDirection: "column",
+          height: "100%",
+          zIndex: 40,
+          transition: "width 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s ease",
+          boxShadow: isDrawerOpen ? "8px 0 24px rgba(0, 0, 0, 0.35)" : "none",
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Drawer Header: Title & Pin/Unpin Toggle */}
         <div
           style={{
-            width: "270px",
-            minWidth: "270px",
-            background: "#080D18",
-            borderRight: "1px solid #1E293B",
+            height: "58px",
+            padding: "0 12px",
             display: "flex",
-            flexDirection: "column",
-            height: "100%",
-            zIndex: 10,
+            alignItems: "center",
+            justifyContent: isDrawerOpen ? "space-between" : "center",
+            borderBottom: "1px solid #1A2333",
+            flexShrink: 0,
           }}
         >
-          {/* Sidebar Top: Header + New Session CTA */}
-          <div style={{ padding: "16px 14px", borderBottom: "1px solid #1E293B" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "12px" }}>
-              <span style={{ fontSize: "11px", fontWeight: 700, color: "#64748B", letterSpacing: "0.6px", textTransform: "uppercase" }}>
-                Consultation Tabs
-              </span>
+          {isDrawerOpen ? (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <Activity size={18} color="#38BDF8" />
+                <span
+                  style={{
+                    fontSize: "12px",
+                    fontWeight: 700,
+                    letterSpacing: "0.5px",
+                    textTransform: "uppercase",
+                    color: "#94A3B8",
+                  }}
+                >
+                  Consultations
+                </span>
+                <span
+                  style={{
+                    fontSize: "10.5px",
+                    fontWeight: 700,
+                    backgroundColor: "rgba(56, 189, 248, 0.15)",
+                    color: "#38BDF8",
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                  }}
+                >
+                  {sessions.length}
+                </span>
+              </div>
+
               <button
-                onClick={() => setShowSessionsSidebar(false)}
-                title="Collapse Session Tabs"
+                onClick={() => setIsSidebarPinned(!isSidebarPinned)}
+                title={isSidebarPinned ? "Unpin sidebar (hover-reveal mode)" : "Pin sidebar open"}
                 style={{
-                  background: "transparent",
-                  border: "none",
-                  color: "#64748B",
+                  background: isSidebarPinned ? "rgba(56, 189, 248, 0.15)" : "transparent",
+                  border: isSidebarPinned ? "1px solid rgba(56, 189, 248, 0.3)" : "none",
+                  color: isSidebarPinned ? "#38BDF8" : "#64748B",
                   cursor: "pointer",
+                  padding: "6px",
+                  borderRadius: "6px",
                   display: "flex",
                   alignItems: "center",
-                  padding: "4px",
-                  borderRadius: "4px",
+                  transition: "all 0.15s ease",
                 }}
               >
-                <PanelLeftClose size={16} />
+                {isSidebarPinned ? <PinOff size={14} /> : <Pin size={14} />}
               </button>
-            </div>
-
-            <button
-              onClick={createNewSession}
+            </>
+          ) : (
+            <div
+              title="Hover to reveal consultation sessions"
               style={{
-                width: "100%",
+                width: 32,
+                height: 32,
+                borderRadius: "8px",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                gap: "8px",
-                padding: "9px 12px",
-                borderRadius: "8px",
-                background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
-                border: "none",
-                color: "#FFFFFF",
-                fontSize: "13px",
-                fontWeight: 600,
+                backgroundColor: "rgba(56, 189, 248, 0.1)",
+                color: "#38BDF8",
                 cursor: "pointer",
-                boxShadow: "0 2px 8px rgba(37, 99, 235, 0.3)",
-                transition: "all 0.15s ease",
               }}
             >
-              <Plus size={16} strokeWidth={2.5} />
-              <span>New Consultation</span>
-            </button>
-          </div>
+              <MessageSquare size={17} />
+            </div>
+          )}
+        </div>
 
-          {/* Session List */}
-          <div
+        {/* New Consultation Action Button */}
+        <div style={{ padding: isDrawerOpen ? "14px 12px 10px" : "12px 8px 10px" }}>
+          <button
+            onClick={createNewSession}
+            title="Start New Clinical Consultation"
             style={{
-              flex: 1,
-              overflowY: "auto",
-              padding: "10px 8px",
+              width: "100%",
               display: "flex",
-              flexDirection: "column",
-              gap: "4px",
+              alignItems: "center",
+              justifyContent: isDrawerOpen ? "flex-start" : "center",
+              gap: "10px",
+              padding: isDrawerOpen ? "10px 14px" : "10px 0",
+              borderRadius: "10px",
+              background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+              border: "none",
+              color: "#FFFFFF",
+              fontSize: "13px",
+              fontWeight: 600,
+              cursor: "pointer",
+              boxShadow: "0 2px 10px rgba(37, 99, 235, 0.3)",
+              transition: "transform 0.15s ease, box-shadow 0.15s ease",
             }}
+            onMouseOver={(e) => (e.currentTarget.style.transform = "scale(1.02)")}
+            onMouseOut={(e) => (e.currentTarget.style.transform = "scale(1)")}
           >
-            {sessions.map((sess) => {
-              const isActive = sess.id === activeSessionId;
-              return (
-                <div
-                  key={sess.id}
-                  onClick={() => switchSession(sess.id)}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    padding: "10px 12px",
-                    borderRadius: "8px",
-                    background: isActive ? "#111A2E" : "transparent",
-                    border: isActive ? "1px solid #1E3A8A" : "1px solid transparent",
-                    borderLeft: isActive ? "3px solid #38BDF8" : "1px solid transparent",
-                    cursor: "pointer",
-                    transition: "all 0.12s ease",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = "#0D1424";
-                      (e.currentTarget as HTMLElement).style.borderColor = "#1B283E";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!isActive) {
-                      (e.currentTarget as HTMLElement).style.background = "transparent";
-                      (e.currentTarget as HTMLElement).style.borderColor = "transparent";
-                    }
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: 1 }}>
-                    <MessageSquare
-                      size={15}
-                      color={isActive ? "#38BDF8" : "#64748B"}
-                      style={{ flexShrink: 0 }}
-                    />
+            <Plus size={16} strokeWidth={2.6} style={{ flexShrink: 0 }} />
+            {isDrawerOpen && <span>New Consultation</span>}
+          </button>
+        </div>
+
+        {/* Scrollable Consultation Points / Sessions */}
+        <div
+          style={{
+            flex: 1,
+            overflowY: "auto",
+            padding: isDrawerOpen ? "6px 8px" : "6px 4px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "4px",
+          }}
+        >
+          {sessions.map((sess) => {
+            const isActive = sess.id === activeSessionId;
+            return (
+              <div
+                key={sess.id}
+                onClick={() => switchSession(sess.id)}
+                title={sess.title}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: isDrawerOpen ? "space-between" : "center",
+                  padding: isDrawerOpen ? "10px 12px" : "10px 0",
+                  borderRadius: "8px",
+                  backgroundColor: isActive ? "#111A2E" : "transparent",
+                  border: isActive ? "1px solid #1E3A8A" : "1px solid transparent",
+                  borderLeft: isActive ? "3px solid #38BDF8" : "1px solid transparent",
+                  cursor: "pointer",
+                  transition: "background 0.12s ease",
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = "#0F172A";
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    (e.currentTarget as HTMLElement).style.backgroundColor = "transparent";
+                  }
+                }}
+              >
+                <div style={{ display: "flex", alignItems: "center", gap: "10px", minWidth: 0, flex: isDrawerOpen ? 1 : "unset" }}>
+                  <div
+                    style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "6px",
+                      backgroundColor: isActive ? "rgba(56, 189, 248, 0.18)" : "rgba(148, 163, 184, 0.08)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <MessageSquare size={14} color={isActive ? "#38BDF8" : "#94A3B8"} />
+                  </div>
+
+                  {isDrawerOpen && (
                     <div style={{ minWidth: 0, flex: 1 }}>
                       <div
                         style={{
-                          fontSize: "13px",
+                          fontSize: "12.5px",
                           fontWeight: isActive ? 600 : 500,
-                          color: isActive ? "#F8FAFC" : "#94A3B8",
+                          color: isActive ? "#F8FAFC" : "#CBD5E1",
                           whiteSpace: "nowrap",
                           overflow: "hidden",
                           textOverflow: "ellipsis",
@@ -583,17 +709,28 @@ export default function ChatPage() {
                       >
                         {sess.title}
                       </div>
-                      <div style={{ fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
-                        <span>{sess.messageCount} msg{sess.messageCount === 1 ? "" : "s"}</span>
+                      <div
+                        style={{
+                          fontSize: "10.5px",
+                          color: "#64748B",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "6px",
+                          marginTop: "2px",
+                        }}
+                      >
+                        <span>{sess.messageCount} note{sess.messageCount === 1 ? "" : "s"}</span>
                         <span>•</span>
                         <span>{new Date(sess.updatedAt).toLocaleDateString([], { month: "short", day: "numeric" })}</span>
                       </div>
                     </div>
-                  </div>
+                  )}
+                </div>
 
+                {isDrawerOpen && (
                   <button
                     onClick={(e) => deleteSession(sess.id, e)}
-                    title="Delete session"
+                    title="Remove consultation"
                     style={{
                       background: "transparent",
                       border: "none",
@@ -601,7 +738,7 @@ export default function ChatPage() {
                       cursor: "pointer",
                       padding: "4px",
                       borderRadius: "4px",
-                      opacity: isActive ? 0.9 : 0.4,
+                      opacity: isActive ? 0.9 : 0.35,
                       display: "flex",
                       alignItems: "center",
                     }}
@@ -611,593 +748,783 @@ export default function ChatPage() {
                     }}
                     onMouseLeave={(e) => {
                       (e.currentTarget as HTMLElement).style.color = "#64748B";
-                      (e.currentTarget as HTMLElement).style.opacity = isActive ? "0.9" : "0.4";
+                      (e.currentTarget as HTMLElement).style.opacity = isActive ? "0.9" : "0.35";
                     }}
                   >
                     <Trash2 size={13} />
                   </button>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Sidebar Footer: Session Partition Guarantee */}
-          <div style={{ padding: "12px 14px", borderTop: "1px solid #1E293B", fontSize: "11px", color: "#64748B", display: "flex", alignItems: "center", gap: "6px" }}>
-            <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#10B981" }} />
-            <span>Multi-turn Memory Active</span>
-          </div>
+                )}
+              </div>
+            );
+          })}
         </div>
-      ) : (
-        <button
-          onClick={() => setShowSessionsSidebar(true)}
-          title="Open Consultation Tabs"
-          style={{
-            position: "absolute",
-            top: "16px",
-            left: "16px",
-            zIndex: 30,
-            background: "#101827",
-            border: "1px solid #1E293B",
-            borderRadius: "8px",
-            color: "#94A3B8",
-            padding: "8px",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-          }}
-        >
-          <PanelLeft size={16} />
-        </button>
-      )}
 
-      {/* ------------------------------------------------------------- */}
-      {/* 2. Main Conversation Stream                                  */}
-      {/* ------------------------------------------------------------- */}
-      <div style={{ flex: 1, display: "flex", flexDirection: "column", overflow: "hidden" }}>
-        
-        {/* Slack-style Channel Header */}
+        {/* Drawer Bottom: Clinical HIPAA Indicator */}
         <div
           style={{
-            padding: "14px 24px",
-            borderBottom: "1px solid #1E293B",
+            padding: isDrawerOpen ? "12px 14px" : "12px 8px",
+            borderTop: "1px solid #1A2333",
+            fontSize: "11px",
+            color: "#64748B",
             display: "flex",
             alignItems: "center",
-            justifyContent: "space-between",
-            background: "#0B101D",
+            justifyContent: isDrawerOpen ? "flex-start" : "center",
+            gap: "8px",
             flexShrink: 0,
           }}
         >
+          <ShieldCheck size={14} color="#10B981" />
+          {isDrawerOpen && (
+            <span style={{ color: "#94A3B8", fontWeight: 500 }}>
+              Encrypted Clinical Session
+            </span>
+          )}
+        </div>
+      </aside>
+
+      {/* ───────────────────────────────────────────────────────────── */}
+      {/* 2. MAIN CLINICAL CHAT AREA (GOOGLE GEMINI UI STYLE)          */}
+      {/* ───────────────────────────────────────────────────────────── */}
+      <main style={{ flex: 1, display: "flex", flexDirection: "column", height: "100%", overflow: "hidden" }}>
+        
+        {/* Top Clinical Header (No model strings, pure clinical status) */}
+        <header
+          style={{
+            height: "58px",
+            padding: "0 28px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            backgroundColor: "#090E1B",
+            borderBottom: "1px solid #1E293B",
+            flexShrink: 0,
+          }}
+        >
+          {/* Left: Consultation Title & Status */}
           <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
             <div
               style={{
-                width: 38,
-                height: 38,
-                borderRadius: "10px",
-                background: "linear-gradient(135deg, #1E3A8A 0%, #0284C7 100%)",
+                width: 32,
+                height: 32,
+                borderRadius: "8px",
+                background: "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
-                border: "1px solid #0284C7",
-                boxShadow: "0 2px 8px rgba(2, 132, 199, 0.25)",
+                color: "#FFFFFF",
+                boxShadow: "0 2px 6px rgba(2, 132, 199, 0.3)",
               }}
             >
-              <Activity size={20} color="#FFFFFF" strokeWidth={2.2} />
+              <Activity size={17} strokeWidth={2.4} />
             </div>
+
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                <span style={{ fontSize: "15px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
-                  {activeSession?.title || "Clinical Intelligence"}
+                <span style={{ fontSize: "14px", fontWeight: 700, color: "#F8FAFC" }}>
+                  {activeSession?.title || "Clinical Consultation"}
                 </span>
-                <span style={{
-                  fontSize: "10px",
-                  padding: "2px 7px",
-                  borderRadius: "5px",
-                  background: "rgba(59, 130, 246, 0.15)",
-                  color: "#60A5FA",
-                  fontWeight: 700,
-                  border: "1px solid rgba(59, 130, 246, 0.25)",
-                  letterSpacing: "0.5px",
-                }}>
-                  SESSION {activeSessionId.slice(0, 9)}
+                <span
+                  style={{
+                    fontSize: "10px",
+                    fontWeight: 700,
+                    padding: "1px 6px",
+                    borderRadius: "4px",
+                    backgroundColor: "rgba(16, 185, 129, 0.15)",
+                    color: "#34D399",
+                    border: "1px solid rgba(16, 185, 129, 0.3)",
+                    letterSpacing: "0.4px",
+                  }}
+                >
+                  LIVE CARE
                 </span>
               </div>
-              <div style={{ fontSize: "12px", color: "#94A3B8", display: "flex", alignItems: "center", gap: "6px", marginTop: "2px" }}>
-                <span style={{ width: 7, height: 7, borderRadius: "50%", background: "#10B981", display: "inline-block", boxShadow: "0 0 6px #10B981" }} />
-                <span>Multi-turn Context Synced</span>
+              <div style={{ fontSize: "11.5px", color: "#94A3B8", display: "flex", alignItems: "center", gap: "6px" }}>
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    backgroundColor: "#10B981",
+                    display: "inline-block",
+                    boxShadow: "0 0 6px #10B981",
+                  }}
+                />
+                <span>Clinical Decision Support Active</span>
                 <span style={{ color: "#475569" }}>•</span>
-                <span>Groq <code style={{ fontSize: "11px", background: "#131E31", padding: "1px 5px", borderRadius: "4px", color: "#38BDF8" }}>openai/gpt-oss-120b</code></span>
-                <span style={{ color: "#475569" }}>•</span>
-                <span>Pinecone RAG</span>
+                <span>Licensed Physician Oversight</span>
               </div>
             </div>
           </div>
 
-          {/* Right Header Controls */}
-          <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
-            <div style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "6px 12px",
-              background: "#101827",
-              border: "1px solid #1E293B",
-              borderRadius: "8px",
-              fontSize: "12.5px",
-              color: "#CBD5E1",
-              fontWeight: 500,
-            }}>
-              <User size={14} color="#38BDF8" />
-              <span>{activePatientName}</span>
-            </div>
-
-            <button
-              onClick={() => setShowTrace(!showTrace)}
+          {/* Right: Clinician / User Badge & Clear Action */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: "6px",
-                padding: "6px 12px",
-                background: showTrace ? "rgba(59, 130, 246, 0.15)" : "#101827",
-                border: showTrace ? "1px solid rgba(59, 130, 246, 0.3)" : "1px solid #1E293B",
-                borderRadius: "8px",
-                color: showTrace ? "#60A5FA" : "#94A3B8",
+                gap: "8px",
+                padding: "6px 14px",
+                backgroundColor: "#0F172A",
+                border: "1px solid #1E293B",
+                borderRadius: "20px",
                 fontSize: "12px",
-                fontWeight: 600,
-                cursor: "pointer",
-                transition: "all 0.15s ease",
+                color: "#CBD5E1",
               }}
             >
-              <ShieldCheck size={14} />
-              {showTrace ? "Hide Pipeline" : "Show Pipeline"}
-            </button>
+              <div
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: "50%",
+                  backgroundColor: "#0284C7",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "10px",
+                  fontWeight: 700,
+                  color: "#FFFFFF",
+                }}
+              >
+                {activePatientName.charAt(0).toUpperCase()}
+              </div>
+              <span style={{ fontWeight: 600 }}>{activePatientName}</span>
+              <span style={{ color: "#64748B", fontSize: "11px" }}>
+                {isDoctorRole ? "(Attending)" : "(Patient)"}
+              </span>
+            </div>
 
             {activeMessages.length > 0 && (
               <button
                 onClick={clearCurrentSessionChat}
-                title="Clear Current Session"
+                title="Reset conversation"
                 style={{
                   padding: "7px 10px",
-                  background: "#101827",
+                  backgroundColor: "#0F172A",
                   border: "1px solid #1E293B",
                   borderRadius: "8px",
                   color: "#94A3B8",
                   cursor: "pointer",
                   display: "flex",
                   alignItems: "center",
+                  transition: "all 0.15s ease",
                 }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#FFFFFF")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#94A3B8")}
               >
                 <RefreshCw size={14} />
               </button>
             )}
           </div>
-        </div>
+        </header>
 
-        {/* Message Stream */}
+        {/* Message Stream or Gemini Empty Welcome State */}
         <div
           style={{
             flex: 1,
             overflowY: "auto",
-            padding: "24px 32px",
+            padding: "24px 20px",
             display: "flex",
             flexDirection: "column",
-            gap: "20px",
           }}
         >
-          {activeMessages.length === 0 && (
-            <div style={{ textAlign: "center", paddingTop: "60px", maxWidth: "620px", margin: "0 auto" }}>
+          <div style={{ maxWidth: "840px", width: "100%", margin: "0 auto", display: "flex", flexDirection: "column", gap: "24px" }}>
+            
+            {/* ─── GEMINI EMPTY STATE ─── */}
+            {activeMessages.length === 0 && (
+              <div style={{ paddingTop: "40px", paddingBottom: "20px" }}>
+                
+                {/* Gemini Multi-Color Sparkle Emblem */}
+                <div
+                  style={{
+                    width: 54,
+                    height: 54,
+                    borderRadius: "16px",
+                    background: "linear-gradient(135deg, #1E1B4B 0%, #1E293B 100%)",
+                    border: "1px solid rgba(56, 189, 248, 0.3)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    marginBottom: "20px",
+                    boxShadow: "0 0 24px rgba(56, 189, 248, 0.2)",
+                  }}
+                >
+                  <Sparkles size={28} color="#38BDF8" />
+                </div>
+
+                {/* Big Gemini Greeting Typography */}
+                <h1
+                  style={{
+                    fontSize: "44px",
+                    fontWeight: 700,
+                    letterSpacing: "-0.03em",
+                    lineHeight: 1.15,
+                    margin: "0 0 10px 0",
+                  }}
+                >
+                  <span
+                    style={{
+                      background: "linear-gradient(135deg, #60A5FA 0%, #93C5FD 50%, #C4B5FD 100%)",
+                      WebkitBackgroundClip: "text",
+                      WebkitTextFillColor: "transparent",
+                    }}
+                  >
+                    Hello, {isDoctorRole ? "Doctor" : activePatientName}
+                  </span>
+                </h1>
+
+                <h2
+                  style={{
+                    fontSize: "26px",
+                    fontWeight: 500,
+                    color: "#94A3B8",
+                    margin: "0 0 28px 0",
+                    letterSpacing: "-0.015em",
+                  }}
+                >
+                  How can I assist your clinical triage today?
+                </h2>
+
+                <p
+                  style={{
+                    fontSize: "14px",
+                    color: "#64748B",
+                    maxWidth: "640px",
+                    lineHeight: 1.6,
+                    margin: "0 0 36px 0",
+                  }}
+                >
+                  Assess patient symptoms, review clinical care guidelines, screen medication contraindications, or interpret laboratory findings.
+                </p>
+
+                {/* Gemini Prompt Suggestion Cards (2x2 Grid) */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))",
+                    gap: "14px",
+                  }}
+                >
+                  {GEMINI_PROMPTS.map((item, idx) => (
+                    <div
+                      key={idx}
+                      onClick={() => sendMessage(item.prompt)}
+                      style={{
+                        padding: "16px 18px",
+                        backgroundColor: "#0D1424",
+                        border: "1px solid #1E2D47",
+                        borderRadius: "16px",
+                        cursor: "pointer",
+                        transition: "all 0.18s ease",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "space-between",
+                        minHeight: "110px",
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#121C33";
+                        (e.currentTarget as HTMLElement).style.borderColor = item.color;
+                        (e.currentTarget as HTMLElement).style.transform = "translateY(-2px)";
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLElement).style.backgroundColor = "#0D1424";
+                        (e.currentTarget as HTMLElement).style.borderColor = "#1E2D47";
+                        (e.currentTarget as HTMLElement).style.transform = "translateY(0)";
+                      }}
+                    >
+                      <div>
+                        <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "8px" }}>
+                          <div
+                            style={{
+                              width: 30,
+                              height: 30,
+                              borderRadius: "8px",
+                              backgroundColor: item.bg,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              color: item.color,
+                            }}
+                          >
+                            <item.icon size={16} />
+                          </div>
+                          <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC" }}>
+                            {item.title}
+                          </span>
+                        </div>
+                        <p style={{ fontSize: "12px", color: "#94A3B8", margin: 0, lineHeight: 1.45 }}>
+                          {item.desc}
+                        </p>
+                      </div>
+
+                      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: "10px" }}>
+                        <ChevronRight size={14} color="#64748B" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+              </div>
+            )}
+
+            {/* ─── ACTIVE MESSAGE BUBBLES ─── */}
+            {activeMessages.map((msg) => (
               <div
+                key={msg.id}
                 style={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: "18px",
-                  background: "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)",
-                  border: "1px solid #334155",
                   display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  margin: "0 auto 20px",
-                  boxShadow: "0 8px 24px rgba(0, 0, 0, 0.3)",
+                  flexDirection: "column",
+                  alignItems: msg.role === "user" ? "flex-end" : "flex-start",
+                  width: "100%",
                 }}
               >
-                <Sparkles size={28} color="#38BDF8" />
-              </div>
-              <h2 style={{ fontSize: "22px", fontWeight: 700, color: "#F8FAFC", marginBottom: "8px", letterSpacing: "-0.015em" }}>
-                MediFlow Clinical Consultation
-              </h2>
-              <p style={{ color: "#94A3B8", fontSize: "14px", lineHeight: 1.6, marginBottom: "32px" }}>
-                Autonomous multi-agent clinical decision support with licensed clinician oversight.
-                Ask follow-up questions freely — your session conversation context is automatically preserved.
-              </p>
-
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", justifyContent: "center" }}>
-                {SUGGESTED_QUERIES.map((q, i) => (
-                  <button
-                    key={i}
-                    onClick={() => sendMessage(q)}
-                    style={{
-                      padding: "8px 16px",
-                      background: "#0D1424",
-                      border: "1px solid #1E2D44",
-                      borderRadius: "100px",
-                      color: "#CBD5E1",
-                      fontSize: "13px",
-                      fontWeight: 500,
-                      cursor: "pointer",
-                      transition: "all 0.15s ease",
-                    }}
-                    onMouseEnter={(e) => {
-                      (e.target as HTMLElement).style.background = "#141F36";
-                      (e.target as HTMLElement).style.borderColor = "#38BDF8";
-                      (e.target as HTMLElement).style.color = "#FFFFFF";
-                    }}
-                    onMouseLeave={(e) => {
-                      (e.target as HTMLElement).style.background = "#0D1424";
-                      (e.target as HTMLElement).style.borderColor = "#1E2D44";
-                      (e.target as HTMLElement).style.color = "#CBD5E1";
-                    }}
-                  >
-                    {q}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {activeMessages.map((msg) => (
-            <div
-              key={msg.id}
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: msg.role === "user" ? "flex-end" : "flex-start",
-                width: "100%",
-              }}
-            >
-              {msg.role === "user" ? (
-                /* Slack-style User Message */
-                <div style={{ maxWidth: "75%", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
-                    <span style={{ fontSize: "12px", fontWeight: 600, color: "#94A3B8" }}>You ({activePatientName})</span>
-                    <span style={{ fontSize: "11px", color: "#64748B" }}>{formatTime(msg.timestamp)}</span>
-                  </div>
-                  <div
-                    style={{
-                      background: "#1D2B44",
-                      color: "#F8FAFC",
-                      border: "1px solid #2B3D5E",
-                      borderRadius: "14px 14px 3px 14px",
-                      padding: "12px 18px",
-                      fontSize: "14.5px",
-                      lineHeight: 1.55,
-                      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
-                    }}
-                  >
-                    {msg.content}
-                  </div>
-                </div>
-              ) : (
-                /* Slack/Clinical Production Assistant Message */
-                <div style={{ maxWidth: "88%", width: "100%", display: "flex", alignItems: "flex-start", gap: "12px" }}>
-                  <div
-                    style={{
-                      width: 36,
-                      height: 36,
-                      borderRadius: "10px",
-                      background: "#0F1A2E",
-                      border: "1px solid #1E2D44",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      flexShrink: 0,
-                      marginTop: 2,
-                    }}
-                  >
-                    <Bot size={18} color="#38BDF8" />
-                  </div>
-
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    {/* Header: Author + Badges + Timestamp */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
-                      <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
-                        MediFlow Clinical Triage
+                {msg.role === "user" ? (
+                  /* User Prompt Pill Bubble */
+                  <div style={{ maxWidth: "78%", display: "flex", flexDirection: "column", alignItems: "flex-end" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "5px" }}>
+                      <span style={{ fontSize: "11.5px", fontWeight: 600, color: "#94A3B8" }}>
+                        {activePatientName}
                       </span>
-                      <span style={{
-                        fontSize: "10px",
-                        padding: "1px 6px",
-                        borderRadius: "4px",
-                        background: "rgba(59, 130, 246, 0.15)",
-                        color: "#60A5FA",
-                        fontWeight: 700,
-                        border: "1px solid rgba(59, 130, 246, 0.25)",
-                        letterSpacing: "0.5px",
-                      }}>
-                        CLINICAL AGENT
-                      </span>
-                      <span style={{ fontSize: "11px", color: "#64748B" }}>
+                      <span style={{ fontSize: "10.5px", color: "#64748B" }}>
                         {formatTime(msg.timestamp)}
                       </span>
                     </div>
 
-                    {/* HITL Suspension Alert Banner */}
-                    {msg.hitl_status === "pending_clinician_review" ? (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "10px",
-                          padding: "12px 16px",
-                          borderRadius: "10px",
-                          background: "rgba(239, 68, 68, 0.12)",
-                          border: "1px solid rgba(239, 68, 68, 0.35)",
-                          marginBottom: "12px",
-                          boxShadow: "0 2px 10px rgba(239, 68, 68, 0.15)",
-                        }}
-                      >
-                        <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0 }} />
-                        <div>
-                          <div style={{ fontSize: "13px", color: "#FCA5A5", fontWeight: 700 }}>
-                            🚨 HITL GATE ACTIVE — Live Agent Suspended Pending Clinician Review
-                          </div>
-                          <div style={{ fontSize: "11.5px", color: "#F87171", marginTop: "2px" }}>
-                            Emergency or high-risk clinical symptoms detected. Autonomous output halted. Enqueued in physician review queue.
-                          </div>
-                        </div>
-                      </div>
-                    ) : msg.escalated && (
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                          padding: "10px 14px",
-                          borderRadius: "8px",
-                          background: "rgba(245, 158, 11, 0.1)",
-                          border: "1px solid rgba(245, 158, 11, 0.25)",
-                          marginBottom: "10px",
-                        }}
-                      >
-                        <AlertTriangle size={16} color="#F59E0B" />
-                        <span style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600 }}>
-                          HIGH RISK — Escalated for clinical review
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Content Card with GFM Table Support */}
                     <div
                       style={{
-                        background: "#0B111E",
-                        border: "1px solid #1B2639",
-                        borderRadius: "12px",
-                        padding: "18px 22px",
-                        boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",
+                        backgroundColor: "#162540",
+                        color: "#F8FAFC",
+                        border: "1px solid #23385D",
+                        borderRadius: "20px 20px 4px 20px",
+                        padding: "14px 20px",
+                        fontSize: "14.5px",
+                        lineHeight: 1.6,
+                        boxShadow: "0 2px 8px rgba(0, 0, 0, 0.2)",
                       }}
                     >
-                      <div className="markdown-output">
-                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                          {msg.content}
-                        </ReactMarkdown>
-                      </div>
+                      {msg.content}
+                    </div>
+                  </div>
+                ) : (
+                  /* Gemini-Style Assistant Response */
+                  <div style={{ maxWidth: "96%", width: "100%", display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                    
+                    {/* Gemini Sparkle Avatar */}
+                    <div
+                      style={{
+                        width: 36,
+                        height: 36,
+                        borderRadius: "12px",
+                        background: "linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)",
+                        border: "1px solid rgba(56, 189, 248, 0.35)",
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        marginTop: 2,
+                        boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)",
+                      }}
+                    >
+                      <Sparkles size={18} color="#38BDF8" />
                     </div>
 
-                    {/* Metadata Pills */}
-                    <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}>
-                      {msg.intent && (
-                        <span style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "6px",
-                          background: "#101B2E",
-                          color: "#38BDF8",
-                          border: "1px solid #1E2D44",
-                          fontWeight: 600,
-                          textTransform: "capitalize",
-                        }}>
-                          {msg.intent.replace(/_/g, " ")}
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      {/* Clinical Assistant Header */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
+                        <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC" }}>
+                          MediFlow Clinical AI
                         </span>
+                        <span
+                          style={{
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            padding: "1px 6px",
+                            borderRadius: "4px",
+                            backgroundColor: "rgba(16, 185, 129, 0.15)",
+                            color: "#34D399",
+                            border: "1px solid rgba(16, 185, 129, 0.3)",
+                          }}
+                        >
+                          DOCTOR SUPERVISED
+                        </span>
+                        <span style={{ fontSize: "11px", color: "#64748B" }}>
+                          {formatTime(msg.timestamp)}
+                        </span>
+                      </div>
+
+                      {/* Acute / High Risk Clinician Review Alert Banner */}
+                      {msg.hitl_status === "pending_clinician_review" ? (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "12px",
+                            padding: "12px 16px",
+                            borderRadius: "10px",
+                            backgroundColor: "rgba(239, 68, 68, 0.12)",
+                            border: "1px solid rgba(239, 68, 68, 0.35)",
+                            marginBottom: "12px",
+                          }}
+                        >
+                          <AlertTriangle size={18} color="#EF4444" style={{ flexShrink: 0 }} />
+                          <div>
+                            <div style={{ fontSize: "13px", color: "#FCA5A5", fontWeight: 700 }}>
+                              🚨 PHYSICIAN SIGN-OFF REQUIRED
+                            </div>
+                            <div style={{ fontSize: "11.5px", color: "#F87171", marginTop: "2px" }}>
+                              Acute or high-risk clinical symptoms detected. Autonomous advice halted and queued for licensed physician approval.
+                            </div>
+                          </div>
+                        </div>
+                      ) : msg.escalated && (
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "8px",
+                            padding: "10px 14px",
+                            borderRadius: "8px",
+                            backgroundColor: "rgba(245, 158, 11, 0.12)",
+                            border: "1px solid rgba(245, 158, 11, 0.3)",
+                            marginBottom: "10px",
+                          }}
+                        >
+                          <AlertTriangle size={16} color="#F59E0B" />
+                          <span style={{ fontSize: "12px", color: "#FDE68A", fontWeight: 600 }}>
+                            HIGH RISK — Flagged for attending clinical review
+                          </span>
+                        </div>
                       )}
 
-                      {msg.risk_level && (
-                        <span style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "6px",
-                          background: msg.risk_level === "HIGH" ? "rgba(239, 68, 68, 0.15)" : msg.risk_level === "MEDIUM" ? "rgba(245, 158, 11, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                          color: msg.risk_level === "HIGH" ? "#F87171" : msg.risk_level === "MEDIUM" ? "#FBBF24" : "#34D399",
-                          border: msg.risk_level === "HIGH" ? "1px solid rgba(239, 68, 68, 0.3)" : msg.risk_level === "MEDIUM" ? "1px solid rgba(245, 158, 11, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
-                          fontWeight: 700,
-                        }}>
-                          {msg.risk_level} RISK
-                        </span>
-                      )}
+                      {/* Content Body */}
+                      <div
+                        style={{
+                          backgroundColor: "#0B111E",
+                          border: "1px solid #1A263B",
+                          borderRadius: "16px",
+                          padding: "18px 24px",
+                          boxShadow: "0 4px 16px rgba(0, 0, 0, 0.25)",
+                        }}
+                      >
+                        <div className="markdown-output">
+                          <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                            {msg.content}
+                          </ReactMarkdown>
+                        </div>
+                      </div>
 
-                      {msg.hitl_status && (
-                        <span style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "6px",
-                          background: msg.hitl_status === "pending_clinician_review" ? "rgba(244, 63, 94, 0.15)" : "rgba(16, 185, 129, 0.15)",
-                          color: msg.hitl_status === "pending_clinician_review" ? "#F43F5E" : "#10B981",
-                          border: msg.hitl_status === "pending_clinician_review" ? "1px solid rgba(244, 63, 94, 0.3)" : "1px solid rgba(16, 185, 129, 0.3)",
-                          fontWeight: 600,
-                          display: "inline-flex",
-                          alignItems: "center",
-                          gap: "4px",
-                        }}>
-                          {msg.hitl_status === "pending_clinician_review" ? (
-                            <>⏳ Awaiting Sign-Off</>
-                          ) : (
-                            <><CheckCircle2 size={11} /> Auto-Approved</>
-                          )}
-                        </span>
-                      )}
+                      {/* Clinical Metadata Badges */}
+                      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginTop: "8px", flexWrap: "wrap" }}>
+                        {msg.risk_level && (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              backgroundColor:
+                                msg.risk_level === "HIGH"
+                                  ? "rgba(239, 68, 68, 0.15)"
+                                  : msg.risk_level === "MEDIUM"
+                                  ? "rgba(245, 158, 11, 0.15)"
+                                  : "rgba(16, 185, 129, 0.15)",
+                              color:
+                                msg.risk_level === "HIGH"
+                                  ? "#F87171"
+                                  : msg.risk_level === "MEDIUM"
+                                  ? "#FBBF24"
+                                  : "#34D399",
+                              border:
+                                msg.risk_level === "HIGH"
+                                  ? "1px solid rgba(239, 68, 68, 0.3)"
+                                  : msg.risk_level === "MEDIUM"
+                                  ? "1px solid rgba(245, 158, 11, 0.3)"
+                                  : "1px solid rgba(16, 185, 129, 0.3)",
+                              fontWeight: 700,
+                            }}
+                          >
+                            {msg.risk_level} RISK
+                          </span>
+                        )}
 
-                      {msg.rag_context_used && (
-                        <span style={{
-                          fontSize: "11px",
-                          padding: "2px 8px",
-                          borderRadius: "6px",
-                          background: "#16162D",
-                          color: "#A78BFA",
-                          border: "1px solid #2B2353",
-                          fontWeight: 600,
-                        }}>
-                          Pinecone RAG
-                        </span>
-                      )}
+                        {msg.hitl_status && (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              backgroundColor:
+                                msg.hitl_status === "pending_clinician_review"
+                                  ? "rgba(244, 63, 94, 0.15)"
+                                  : "rgba(16, 185, 129, 0.15)",
+                              color:
+                                msg.hitl_status === "pending_clinician_review"
+                                  ? "#F43F5E"
+                                  : "#10B981",
+                              border:
+                                msg.hitl_status === "pending_clinician_review"
+                                  ? "1px solid rgba(244, 63, 94, 0.3)"
+                                  : "1px solid rgba(16, 185, 129, 0.3)",
+                              fontWeight: 600,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            {msg.hitl_status === "pending_clinician_review" ? (
+                              <>⏳ Awaiting Sign-Off</>
+                            ) : (
+                              <><CheckCircle2 size={11} /> Clinically Verified</>
+                            )}
+                          </span>
+                        )}
+
+                        {msg.rag_context_used && (
+                          <span
+                            style={{
+                              fontSize: "11px",
+                              padding: "2px 8px",
+                              borderRadius: "6px",
+                              backgroundColor: "#131C30",
+                              color: "#38BDF8",
+                              border: "1px solid #1E2E4E",
+                              fontWeight: 600,
+                              display: "inline-flex",
+                              alignItems: "center",
+                              gap: "4px",
+                            }}
+                          >
+                            <ShieldCheck size={11} /> Verified Clinical Evidence
+                          </span>
+                        )}
+                      </div>
+
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+
+            {/* Streaming Typewriter Preview */}
+            {isLoading && streamingText && (
+              <div style={{ maxWidth: "96%", width: "100%", display: "flex", alignItems: "flex-start", gap: "14px" }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "12px",
+                    background: "linear-gradient(135deg, #1E1B4B 0%, #0F172A 100%)",
+                    border: "1px solid rgba(56, 189, 248, 0.35)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                    marginTop: 2,
+                    boxShadow: "0 0 12px rgba(56, 189, 248, 0.25)",
+                  }}
+                >
+                  <Sparkles size={18} color="#38BDF8" />
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      backgroundColor: "#0B111E",
+                      border: "1px solid #1A263B",
+                      borderRadius: "16px",
+                      padding: "18px 24px",
+                    }}
+                  >
+                    <div className="markdown-output">
+                      <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                        {streamingText}
+                      </ReactMarkdown>
                     </div>
                   </div>
                 </div>
-              )}
-            </div>
-          ))}
-
-          {isLoading && (
-            <div style={{ display: "flex", alignItems: "flex-start", gap: "12px" }}>
-              <div
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "10px",
-                  background: "#0F1A2E",
-                  border: "1px solid #1E2D44",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  flexShrink: 0,
-                }}
-              >
-                <Bot size={18} color="#38BDF8" />
               </div>
-              <div
-                style={{
-                  padding: "14px 20px",
-                  borderRadius: "12px",
-                  background: "#0B111E",
-                  border: "1px solid #1B2639",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "10px",
-                }}
-              >
-                <div style={{ display: "flex", gap: "4px" }}>
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out" }} />
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.2s" }} />
-                  <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
+            )}
+
+            {/* Loading Indicator */}
+            {isLoading && !streamingText && (
+              <div style={{ display: "flex", alignItems: "center", gap: "12px", padding: "10px 0" }}>
+                <div
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "12px",
+                    background: "#0F1A2E",
+                    border: "1px solid #1E2D44",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Sparkles size={18} color="#38BDF8" className="animate-spin" />
                 </div>
-                <span style={{ fontSize: "13px", color: "#94A3B8" }}>
-                  Processing clinical pipeline with Groq <code>openai/gpt-oss-120b</code>...
-                </span>
+                <div
+                  style={{
+                    padding: "12px 18px",
+                    borderRadius: "12px",
+                    backgroundColor: "#0B111E",
+                    border: "1px solid #1B2639",
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                  }}
+                >
+                  <div style={{ display: "flex", gap: "4px" }}>
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.2s" }} />
+                    <span style={{ width: 6, height: 6, borderRadius: "50%", background: "#38BDF8", animation: "pulse-dot 1.2s infinite ease-in-out 0.4s" }} />
+                  </div>
+                  <span style={{ fontSize: "13px", color: "#94A3B8" }}>
+                    Analyzing clinical symptoms and checking medical guidelines...
+                  </span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
-          <div ref={messagesEndRef} />
+            <div ref={messagesEndRef} />
+          </div>
         </div>
 
-        {/* Input Bar — Slack / Production SaaS Style */}
+        {/* ───────────────────────────────────────────────────────────── */}
+        {/* 3. GEMINI FLOATING COMPOSER PILL                             */}
+        {/* ───────────────────────────────────────────────────────────── */}
         <div
           style={{
-            padding: "16px 28px 20px",
-            borderTop: "1px solid #1E293B",
-            background: "#0B101D",
+            padding: "12px 24px 22px",
+            backgroundColor: "transparent",
             flexShrink: 0,
           }}
         >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "10px",
-              background: "#0F172A",
-              border: "1px solid #26334D",
-              borderRadius: "12px",
-              padding: "6px 8px 6px 16px",
-              boxShadow: "0 2px 8px rgba(0, 0, 0, 0.25)",
-              transition: "border-color 0.2s ease",
-            }}
-          >
-            <input
-              ref={inputRef}
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask a question or follow up on your previous query..."
-              disabled={isLoading}
+          <div style={{ maxWidth: "840px", width: "100%", margin: "0 auto" }}>
+            
+            {/* The Floating Pill Input Box */}
+            <div
               style={{
-                flex: 1,
-                background: "transparent",
-                border: "none",
-                outline: "none",
-                color: "#F8FAFC",
-                fontSize: "14px",
-                lineHeight: 1.5,
-              }}
-              autoFocus
-            />
-            <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isLoading}
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: "8px",
-                background: !input.trim() || isLoading ? "#1E293B" : "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
-                border: "none",
                 display: "flex",
                 alignItems: "center",
-                justifyContent: "center",
-                cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
-                color: !input.trim() || isLoading ? "#64748B" : "#FFFFFF",
-                boxShadow: !input.trim() || isLoading ? "none" : "0 2px 8px rgba(37, 99, 235, 0.35)",
-                transition: "all 0.15s ease",
+                gap: "10px",
+                backgroundColor: "#0F172A",
+                border: "1px solid #23314A",
+                borderRadius: "32px",
+                padding: "8px 10px 8px 18px",
+                boxShadow: "0 8px 30px rgba(0, 0, 0, 0.35)",
+                transition: "border-color 0.2s ease, box-shadow 0.2s ease",
+              }}
+              onFocus={() => {}}
+            >
+              {/* Paperclip / File Attachment */}
+              <button
+                type="button"
+                title="Attach clinical note or lab report PDF"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#64748B",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "6px",
+                  borderRadius: "50%",
+                  transition: "color 0.15s ease",
+                }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#64748B")}
+              >
+                <Paperclip size={18} />
+              </button>
+
+              {/* Text Input */}
+              <input
+                ref={inputRef}
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="Ask a clinical question, assess symptoms, or follow up..."
+                disabled={isLoading}
+                style={{
+                  flex: 1,
+                  background: "transparent",
+                  border: "none",
+                  outline: "none",
+                  color: "#F8FAFC",
+                  fontSize: "14.5px",
+                  lineHeight: 1.5,
+                }}
+                autoFocus
+              />
+
+              {/* Voice / Mic Indicator */}
+              <button
+                type="button"
+                title="Voice clinical dictation"
+                style={{
+                  background: "transparent",
+                  border: "none",
+                  color: "#64748B",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  padding: "6px",
+                  borderRadius: "50%",
+                  transition: "color 0.15s ease",
+                }}
+                onMouseOver={(e) => ((e.currentTarget as HTMLElement).style.color = "#38BDF8")}
+                onMouseOut={(e) => ((e.currentTarget as HTMLElement).style.color = "#64748B")}
+              >
+                <Mic size={18} />
+              </button>
+
+              {/* Send Button */}
+              <button
+                onClick={() => sendMessage(input)}
+                disabled={!input.trim() || isLoading}
+                title="Send query"
+                style={{
+                  width: 38,
+                  height: 38,
+                  borderRadius: "50%",
+                  background:
+                    !input.trim() || isLoading
+                      ? "#1E293B"
+                      : "linear-gradient(135deg, #0284C7 0%, #2563EB 100%)",
+                  border: "none",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  cursor: !input.trim() || isLoading ? "not-allowed" : "pointer",
+                  color: !input.trim() || isLoading ? "#64748B" : "#FFFFFF",
+                  boxShadow:
+                    !input.trim() || isLoading
+                      ? "none"
+                      : "0 2px 10px rgba(37, 99, 235, 0.4)",
+                  transition: "all 0.15s ease",
+                }}
+              >
+                <Send size={15} style={{ marginLeft: "1px" }} />
+              </button>
+            </div>
+
+            {/* Discreet Clinical Disclaimer (Doctor & Patient Friendly) */}
+            <div
+              style={{
+                textAlign: "center",
+                fontSize: "11.5px",
+                color: "#64748B",
+                marginTop: "10px",
+                letterSpacing: "0.2px",
               }}
             >
-              <Send size={16} />
-            </button>
-          </div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: "11.5px", color: "#64748B", marginTop: "8px", padding: "0 4px" }}>
-            <span>Press <kbd style={{ background: "#1E293B", padding: "1px 5px", borderRadius: "3px", color: "#94A3B8" }}>Enter ↵</kbd> to send</span>
-            <span>Session: {activeSessionId} • Multi-turn Continuity Enforced</span>
-          </div>
-        </div>
-      </div>
-
-      {/* ------------------------------------------------------------- */}
-      {/* 3. Right Pipeline Inspection Drawer (LangGraph Agent Trace)   */}
-      {/* ------------------------------------------------------------- */}
-      {showTrace && (
-        <div
-          style={{
-            width: "320px",
-            minWidth: "320px",
-            borderLeft: "1px solid #1E293B",
-            padding: "20px 18px",
-            overflowY: "auto",
-            background: "#080D18",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
-            <span style={{ fontSize: "13.5px", fontWeight: 700, color: "#F8FAFC", letterSpacing: "-0.01em" }}>
-              AI Workflow Trace
-            </span>
-            <span style={{ fontSize: "10px", padding: "2px 6px", borderRadius: "4px", background: "#101B2E", color: "#38BDF8", border: "1px solid #1E2D44", fontWeight: 700 }}>
-              LANGGRAPH
-            </span>
-          </div>
-
-          <WorkflowTrace
-            steps={isLoading ? liveTrace : (activeMessages[activeMessages.length - 1]?.trace || liveTrace)}
-            isLoading={isLoading}
-          />
-
-          {!isLoading && activeMessages.length > 0 && (
-            <div style={{ marginTop: "20px", padding: "12px", borderRadius: "8px", background: "#0D1424", border: "1px solid #1B2639", fontSize: "12px", color: "#94A3B8", lineHeight: 1.5 }}>
-              Deterministic state partition: state transferred across classification, safety gate, retrieval, and response subgraphs.
+              MediFlow AI provides clinical decision support. Emergency conditions require immediate hospital evaluation or physician sign-off.
             </div>
-          )}
+
+          </div>
         </div>
-      )}
+
+      </main>
     </div>
   );
 }

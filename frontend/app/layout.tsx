@@ -4,10 +4,10 @@ import { AuthProvider } from "@/components/AuthProvider";
 import { AppShell } from "@/components/layout/AppShell";
 
 export const metadata: Metadata = {
-  title: "MediFlow AI — Clinical Intelligence Platform with Human-in-the-Loop Oversight",
+  title: "MediFlow AI — Clinical Intelligence & Patient Triage Platform",
   description:
-    "Production-grade clinical intelligence and multi-agent triage platform built with LangGraph, FastAPI, and PostgreSQL Row-Level Security.",
-  keywords: "healthcare AI, clinical triage, LangGraph, HITL, medical assistant, clinical decision support",
+    "Clinical decision support and intelligent patient triage platform with licensed doctor oversight, medication safety screening, and hospital-grade privacy.",
+  keywords: "healthcare AI, clinical triage, doctor decision support, medical consultation, patient safety, HIPAA compliant",
 };
 
 export default function RootLayout({
